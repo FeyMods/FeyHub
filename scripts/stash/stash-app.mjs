@@ -12,7 +12,7 @@ export class FeyStashApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
   static DEFAULT_OPTIONS = {
     id: "fey-stash",
-    classes: ["fey-stash", "fey-stash-window"],
+    classes: ["fey-hub", "fey-stash", "fey-stash-window"],
     tag: "div",
     window: {
       title: "FEYPARTY.Title",
