@@ -25,24 +25,15 @@ The stash is a tab in the hub, and it also keeps its own ways in:
 
 Stash changes are passed to the GM's client and applied there, so **a GM must be logged in** for players to change the stash. Everyone can still view it without a GM. The world setting *Players can manage the Party Stash* controls whether players can add or remove currency types and delete resources.
 
-## Installation
-FeyHub needs Foundry VTT **V13 or V14**.
+## Installing in Foundry
 
-1. Open Foundry and go to the **Add-on Modules** tab on the setup screen.
-2. Click **Install Module**.
-3. Paste this manifest URL into the **Manifest URL** field at the bottom of the window and click **Install**:
+In Foundry's **Add-on Modules → Install Module**, paste this manifest URL:
+
 
    ```
    https://github.com/FeyMods/FeyHub/releases/latest/download/module.json
    ```
 
-4. Launch your world, open *Game Settings → Manage Modules*, tick **FeyHub** and click **Save Module Settings**.
-
-Foundry checks the same URL for updates, so new releases show up under *Add-on Modules → Check for Updates*.
-
-**Manual install:** download `module.zip` from the [latest release](https://github.com/FeyMods/FeyHub/releases/latest) and extract it into `{UserData}/Data/modules/FeyHub`. For development, copy or symlink this repository there instead.
-
-## First-time setup
 Log in as GM once after enabling the module. It creates two journal entries in a *FeyHub* folder:
 - **FeyHub**: the shared data. Everyone can read it.
 - **FeyHub (GM)**: holds entries the GM has hidden from players.
