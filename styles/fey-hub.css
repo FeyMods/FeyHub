@@ -408,6 +408,7 @@ details.fey-card .fey-card-body { border-top: 1px solid var(--fey-border); paddi
 .fey-editor .window-content,
 .fey-permissions .window-content { padding: 12px; }
 
+.fey-form .form-group { display: flex; align-items: center; gap: 8px; }
 .fey-form .form-group > label { flex: 0 0 120px; color: var(--fey-muted); }
 .fey-form .form-group.stacked { flex-direction: column; align-items: stretch; }
 .fey-form .form-group.stacked > label { flex: none; }
