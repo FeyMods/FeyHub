@@ -1,0 +1,43 @@
+<div class="fey-chips">
+  {{#each questFilters}}
+  <button type="button" class="fey-chip {{#if active}}active{{/if}} status-{{id}}" data-action="questFilter" data-filter="{{id}}">
+    {{label}} <span class="fey-count">{{count}}</span>
+  </button>
+  {{/each}}
+</div>
+
+{{#each quests}}
+<details class="fey-card status-{{status}} {{#if hidden}}is-hidden{{/if}}" data-type="quests" data-id="{{id}}" data-search="{{searchText}}" {{#if expanded}}open{{/if}}>
+  <summary class="fey-card-header">
+    <i class="fa-solid fa-chevron-right fey-caret"></i>
+    <span class="fey-card-title">{{title}}</span>
+    {{#if hidden}}<span class="fey-badge is-hidden"><i class="fa-solid fa-eye-slash"></i> {{localize "FEYHUB.Hidden"}}</span>{{/if}}
+    {{#if objectives.length}}<span class="fey-progress">{{doneCount}}/{{objectives.length}}</span>{{/if}}
+    <span class="fey-badge status-{{status}}">{{statusLabel}}</span>
+  </summary>
+  <div class="fey-card-body">
+    {{#if giver}}
+    <p class="fey-line">
+      <i class="fa-solid fa-user"></i> {{localize "FEYHUB.Quest.Giver"}}:
+      <a class="fey-link" data-action="gotoNpc" data-npc="{{giver.id}}">{{giver.name}}</a>
+    </p>
+    {{/if}}
+    {{#if description}}<p class="fey-text">{{description}}</p>{{/if}}
+    {{#if objectives.length}}
+    <ul class="fey-objective-list">
+      {{#each objectives}}
+      <li>
+        <label class="fey-objective {{#if done}}done{{/if}}">
+          <input type="checkbox" data-action="toggleObjective" data-objective="{{id}}" {{checked done}} {{#unless ../canEdit}}disabled{{/unless}}>
+          <span>{{text}}</span>
+        </label>
+      </li>
+      {{/each}}
+    </ul>
+    {{/if}}
+    {{> "modules/fey-manager/templates/tabs/card-footer.hbs"}}
+  </div>
+</details>
+{{else}}
+<p class="fey-empty"><i class="fa-solid fa-scroll"></i> {{localize "FEYHUB.Empty.quests"}}</p>
+{{/each}}

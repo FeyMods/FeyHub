@@ -1,0 +1,110 @@
+<div class="fey-form-wrap">
+  <div class="fey-form">
+    {{#if isQuest}}
+    <div class="form-group">
+      <label>{{localize "FEYHUB.Quest.Title"}}</label>
+      <input type="text" name="title" value="{{entry.title}}" required autofocus>
+    </div>
+    <div class="form-group">
+      <label>{{localize "FEYHUB.Quest.StatusLabel"}}</label>
+      <select name="status">{{selectOptions questStatuses selected=entry.status}}</select>
+    </div>
+    <div class="form-group">
+      <label>{{localize "FEYHUB.Quest.Giver"}}</label>
+      <select name="giverNpcId">{{selectOptions npcChoices selected=entry.giverNpcId blank="—"}}</select>
+    </div>
+    <div class="form-group stacked">
+      <label>{{localize "FEYHUB.Description"}}</label>
+      <textarea name="description" rows="5">{{entry.description}}</textarea>
+    </div>
+    <div class="form-group stacked">
+      <label>{{localize "FEYHUB.Quest.Objectives"}}</label>
+      <ul class="fey-objectives">
+        {{#each objectives}}
+        <li class="fey-objective-row">
+          <input type="hidden" name="objectives.{{key}}.id" value="{{id}}">
+          <input type="checkbox" name="objectives.{{key}}.done" {{checked done}}>
+          <input type="text" name="objectives.{{key}}.text" value="{{text}}">
+          <button type="button" class="fey-icon-btn" data-action="removeObjective" data-tooltip="FEYHUB.Remove">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </li>
+        {{/each}}
+      </ul>
+      <button type="button" class="fey-btn subtle" data-action="addObjective">
+        <i class="fa-solid fa-plus"></i> {{localize "FEYHUB.Quest.AddObjective"}}
+      </button>
+    </div>
+    {{/if}}
+
+    {{#if isRumour}}
+    <div class="form-group stacked">
+      <label>{{localize "FEYHUB.Rumour.Text"}}</label>
+      <textarea name="text" rows="4" required autofocus>{{entry.text}}</textarea>
+    </div>
+    <div class="form-group">
+      <label>{{localize "FEYHUB.Rumour.HeardFrom"}}</label>
+      <input type="text" name="source" value="{{entry.source}}" placeholder="{{localize "FEYHUB.Rumour.SourcePlaceholder"}}">
+    </div>
+    <div class="form-group">
+      <label>{{localize "FEYHUB.Rumour.SourceNpc"}}</label>
+      <select name="sourceNpcId">{{selectOptions npcChoices selected=entry.sourceNpcId blank="—"}}</select>
+    </div>
+    <div class="form-group">
+      <label>{{localize "FEYHUB.Rumour.Location"}}</label>
+      <input type="text" name="location" value="{{entry.location}}">
+    </div>
+    <div class="form-group">
+      <label>{{localize "FEYHUB.Rumour.StatusLabel"}}</label>
+      <select name="status">{{selectOptions rumourStatuses selected=entry.status}}</select>
+    </div>
+    {{/if}}
+
+    {{#if isNPC}}
+    <div class="form-group">
+      <label>{{localize "FEYHUB.NPC.Name"}}</label>
+      <input type="text" name="name" value="{{entry.name}}" required autofocus>
+    </div>
+    <div class="form-group">
+      <label>{{localize "FEYHUB.NPC.DispositionLabel"}}</label>
+      <select name="disposition">{{selectOptions dispositions selected=entry.disposition}}</select>
+    </div>
+    <div class="form-group stacked">
+      <label>{{localize "FEYHUB.NPC.Description"}}</label>
+      <textarea name="description" rows="4" placeholder="{{localize "FEYHUB.NPC.DescriptionPlaceholder"}}">{{entry.description}}</textarea>
+    </div>
+    <div class="form-group">
+      <label>{{localize "FEYHUB.NPC.LinkedActor"}}</label>
+      <select name="actorUuid">{{selectOptions actorChoices selected=entry.actorUuid blank="—"}}</select>
+    </div>
+    <input type="hidden" name="img" value="{{entry.img}}">
+    <div class="fey-drop-zone">
+      <i class="fa-solid fa-hand-pointer"></i> {{localize "FEYHUB.NPC.DropZone"}}
+    </div>
+    {{/if}}
+
+    {{#if isNote}}
+    <div class="form-group">
+      <label>{{localize "FEYHUB.Note.Title"}}</label>
+      <input type="text" name="title" value="{{entry.title}}" autofocus>
+    </div>
+    <div class="form-group stacked">
+      <label>{{localize "FEYHUB.Note.Text"}}</label>
+      <textarea name="text" rows="6" required>{{entry.text}}</textarea>
+    </div>
+    {{/if}}
+
+    {{#if isGM}}
+    <div class="form-group fey-gm-only">
+      <label><i class="fa-solid fa-eye-slash"></i> {{localize "FEYHUB.HiddenFromPlayers"}}</label>
+      <input type="checkbox" name="hidden" {{checked hidden}}>
+    </div>
+    {{/if}}
+  </div>
+
+  <footer class="form-footer">
+    <button type="submit" class="fey-btn primary">
+      <i class="fa-solid fa-floppy-disk"></i> {{submitLabel}}
+    </button>
+  </footer>
+</div>

@@ -1,0 +1,33 @@
+{{#if editable}}
+<p class="fey-hint"><i class="fa-solid fa-hand-pointer"></i> {{localize "FEYHUB.NPC.DropHint"}}</p>
+{{/if}}
+
+{{#each npcs}}
+<details class="fey-card fey-npc disposition-{{disposition}} {{#if hidden}}is-hidden{{/if}}" data-type="npcs" data-id="{{id}}" data-search="{{searchText}}" {{#if expanded}}open{{/if}}>
+  <summary class="fey-card-header">
+    <img class="fey-portrait" src="{{img}}" alt="">
+    <span class="fey-card-title">{{name}}</span>
+    {{#if hidden}}<span class="fey-badge is-hidden"><i class="fa-solid fa-eye-slash"></i> {{localize "FEYHUB.Hidden"}}</span>{{/if}}
+    {{#if linked}}<i class="fa-solid fa-link fey-linked" data-tooltip="FEYHUB.NPC.LinkedActor"></i>{{/if}}
+    <span class="fey-badge disposition-{{disposition}}">{{dispositionLabel}}</span>
+  </summary>
+  <div class="fey-card-body">
+    {{#if description}}<p class="fey-text">{{description}}</p>{{/if}}
+    {{#if canView}}
+    <div class="fey-actions">
+      <button type="button" class="fey-btn" data-action="openActor">
+        <i class="fa-solid fa-id-card"></i> {{localize "FEYHUB.NPC.OpenSheet"}}
+      </button>
+      {{#if canEdit}}
+      <button type="button" class="fey-btn subtle" data-action="unlinkActor">
+        <i class="fa-solid fa-link-slash"></i> {{localize "FEYHUB.NPC.Unlink"}}
+      </button>
+      {{/if}}
+    </div>
+    {{/if}}
+    {{> "modules/fey-manager/templates/tabs/card-footer.hbs"}}
+  </div>
+</details>
+{{else}}
+<p class="fey-empty"><i class="fa-solid fa-users"></i> {{localize "FEYHUB.Empty.npcs"}}</p>
+{{/each}}

@@ -1,0 +1,42 @@
+<div class="fey-hub-body">
+  {{#unless ready}}
+  <div class="fey-setup">
+    <i class="fa-solid fa-hourglass-half"></i>
+    <p>{{localize "FEYHUB.Warn.NotReady"}}</p>
+  </div>
+  {{else}}
+  <nav class="fey-tabs">
+    {{#each tabs}}
+    <button type="button" class="fey-tab {{#if active}}active{{/if}}" data-action="switchTab" data-tab="{{id}}">
+      <i class="{{icon}}"></i>
+      <span class="fey-tab-label">{{label}}</span>
+      <span class="fey-count">{{count}}</span>
+    </button>
+    {{/each}}
+  </nav>
+
+  <div class="fey-toolbar">
+    <label class="fey-search">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="search" class="fey-search-input" value="{{search}}" placeholder="{{localize "FEYHUB.Search"}}">
+    </label>
+    {{#if editable}}
+    <button type="button" class="fey-btn primary" data-action="add" data-type="{{activeTab}}">
+      <i class="fa-solid fa-plus"></i> {{addLabel}}
+    </button>
+    {{/if}}
+    {{#if isGM}}
+    <button type="button" class="fey-icon-btn" data-action="permissions" data-tooltip="FEYHUB.Permissions.Title">
+      <i class="fa-solid fa-user-lock"></i>
+    </button>
+    {{/if}}
+  </div>
+
+  <section class="fey-panel">
+    {{#if isQuests}}{{> "modules/fey-manager/templates/tabs/quests.hbs"}}{{/if}}
+    {{#if isRumours}}{{> "modules/fey-manager/templates/tabs/rumours.hbs"}}{{/if}}
+    {{#if isNPCs}}{{> "modules/fey-manager/templates/tabs/npcs.hbs"}}{{/if}}
+    {{#if isNotes}}{{> "modules/fey-manager/templates/tabs/notes.hbs"}}{{/if}}
+  </section>
+  {{/unless}}
+</div>
