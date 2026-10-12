@@ -1,6 +1,6 @@
 # FeyHub
 
-A Foundry VTT **V13** module that gives the GM and players one shared hub for:
+A Foundry VTT **V13 and V14** module that gives the GM and players one shared hub for:
 
 - **Quests**: status (Active, On Hold, Completed, Failed), quest giver, description and an objectives checklist.
 - **Rumours**: what was heard, who or where it came from (free text and/or a linked NPC entry), where it was heard, and whether it's confirmed.

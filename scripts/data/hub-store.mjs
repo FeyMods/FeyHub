@@ -134,6 +134,15 @@ function denied() {
   return null;
 }
 
+/**
+ * An update that removes one key from a flag object. V14 deprecates the "-=" key in
+ * favour of its ForcedDeletion operator (`_del`); V13 only understands "-=".
+ */
+function deleteFlagKey(type, id) {
+  if (globalThis._del) return { [`flags.${MODULE_ID}.${type}.${id}`]: globalThis._del };
+  return { [`flags.${MODULE_ID}.${type}.-=${id}`]: null };
+}
+
 function journalFor(hidden) {
   const journal = hidden ? getSecretJournal() : getHubJournal();
   if (!journal) ui.notifications.error("FEYHUB.Warn.NotReady", { localize: true });
@@ -180,7 +189,7 @@ export async function updateEntry(type, id, changes, { hidden } = {}) {
   const entry = { ...found.entry, ...changes, ...stamp };
   delete entry.hidden;
   await target.update({ [`flags.${MODULE_ID}.${type}.${id}`]: entry });
-  await found.journal.update({ [`flags.${MODULE_ID}.${type}.-=${id}`]: null });
+  await found.journal.update(deleteFlagKey(type, id));
   return entry;
 }
 
@@ -188,7 +197,7 @@ export async function deleteEntry(type, id) {
   const found = getEntry(type, id);
   if (!found) return;
   if (!canDelete(found.entry)) return denied();
-  await found.journal.update({ [`flags.${MODULE_ID}.${type}.-=${id}`]: null });
+  await found.journal.update(deleteFlagKey(type, id));
 }
 
 export function setHidden(type, id, hidden) {
