@@ -61,3 +61,6 @@ Foundry has no server-side code for modules, so some rules are only enforced in 
 
 - **Hidden entries:** they never appear in a player's hub, but Foundry sends world data to every client. A player who digs through the browser console could still find them.
 - **Deleting:** the "only delete your own entries" rule is enforced by the hub's interface. An editor could get around it through the console.
+
+## License
+FeyHub is released under the [MIT License](LICENSE).
