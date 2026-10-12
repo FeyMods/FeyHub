@@ -1,0 +1,112 @@
+{
+  "FEYHUB": {
+    "Title": "Party Hub",
+    "Search": "Search…",
+    "Hidden": "Hidden",
+    "HiddenFromPlayers": "Hidden from players",
+    "Hide": "Hide from players",
+    "Reveal": "Reveal to players",
+    "Edit": "Edit",
+    "Delete": "Delete",
+    "DeleteConfirm": "Delete <strong>{name}</strong>? This cannot be undone.",
+    "Remove": "Remove",
+    "Save": "Save",
+    "Create": "Create",
+    "Description": "Description",
+    "AddedBy": "Added by",
+    "EditedBy": "edited by",
+    "UnknownUser": "Unknown",
+    "NewTitle": "New {kind}",
+    "EditTitle": "Edit {kind}",
+
+    "Tabs": {
+      "Quests": "Quests",
+      "Rumours": "Rumours",
+      "NPCs": "NPCs",
+      "Notes": "Notes"
+    },
+    "Singular": {
+      "quests": "Quest",
+      "rumours": "Rumour",
+      "npcs": "NPC",
+      "notes": "Note"
+    },
+    "Add": {
+      "quests": "Add Quest",
+      "rumours": "Add Rumour",
+      "npcs": "Add NPC",
+      "notes": "Add Note"
+    },
+    "Empty": {
+      "quests": "No quests yet.",
+      "rumours": "No rumours heard yet.",
+      "npcs": "No NPCs recorded yet.",
+      "notes": "No notes yet."
+    },
+
+    "Quest": {
+      "Title": "Title",
+      "StatusLabel": "Status",
+      "All": "All",
+      "Giver": "Quest giver",
+      "Objectives": "Objectives",
+      "AddObjective": "Add objective",
+      "ObjectivePlaceholder": "Describe the objective…",
+      "Status": {
+        "active": "Active",
+        "on-hold": "On Hold",
+        "completed": "Completed",
+        "failed": "Failed"
+      }
+    },
+    "Rumour": {
+      "Text": "Rumour",
+      "HeardFrom": "Heard from",
+      "SourcePlaceholder": "e.g. The barkeep at the Drowned Rat",
+      "SourceNpc": "Source NPC",
+      "Location": "Where",
+      "StatusLabel": "Truth",
+      "Status": {
+        "unverified": "Unverified",
+        "true": "Confirmed",
+        "false": "False"
+      }
+    },
+    "NPC": {
+      "Name": "Name",
+      "Description": "Who are they?",
+      "DescriptionPlaceholder": "A short description of who they are…",
+      "DispositionLabel": "Disposition",
+      "LinkedActor": "Linked actor",
+      "OpenSheet": "Open Sheet",
+      "Unlink": "Unlink actor",
+      "Linked": "Linked {name} to this NPC.",
+      "NoAccess": "You don't have permission to view that actor.",
+      "DropHint": "Drag an Actor from the sidebar here to add an NPC, or onto an NPC to link its sheet.",
+      "DropZone": "…or drop an Actor here",
+      "Disposition": {
+        "unknown": "Unknown",
+        "friendly": "Friendly",
+        "neutral": "Neutral",
+        "hostile": "Hostile"
+      }
+    },
+    "Note": {
+      "Title": "Title",
+      "Text": "Note",
+      "Untitled": "Note"
+    },
+
+    "Permissions": {
+      "Title": "Hub Editors",
+      "Menu": "Choose Editors",
+      "Hint": "Ticked players can add and edit hub entries, and delete the entries they created. Everyone else can read the hub.",
+      "Saved": "Hub editors updated.",
+      "NoPlayers": "There are no players in this world yet."
+    },
+    "Warn": {
+      "NoPermission": "You don't have permission to change the Party Hub.",
+      "NotReady": "The Party Hub hasn't been set up yet. A GM needs to log in once to create it."
+    }
+  }
+}

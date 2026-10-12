@@ -1,0 +1,16 @@
+{
+  "id": "fey-manager",
+  "title": "Fey Manager – Party Hub",
+  "description": "A shared hub for the GM and players to track quests, rumours, NPCs and short notes. Open it from the Token controls.",
+  "version": "0.1.0",
+  "authors": [{ "name": "Zantid" }],
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13.351"
+  },
+  "esmodules": ["scripts/main.mjs"],
+  "styles": ["styles/fey-hub.css"],
+  "languages": [
+    { "lang": "en", "name": "English", "path": "lang/en.json" }
+  ]
+}

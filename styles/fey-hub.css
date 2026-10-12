@@ -1,0 +1,465 @@
+/* ==========================================================================
+   Fey Manager – Party Hub
+   ========================================================================== */
+
+.fey-hub {
+  --fey-bg: #1d1b24;
+  --fey-surface: #26232f;
+  --fey-surface-2: #2f2b3a;
+  --fey-border: #3d3849;
+  --fey-text: #e9e6f0;
+  --fey-muted: #a39cb3;
+  --fey-accent: #a98be0;
+  --fey-accent-strong: #c2a8f5;
+  --fey-accent-text: #1a1622;
+  --fey-green: #5fbf8a;
+  --fey-amber: #e0b456;
+  --fey-red: #e07a7a;
+  --fey-blue: #6fa8dc;
+  --fey-grey: #8d879a;
+  --fey-radius: 8px;
+}
+
+.fey-hub.theme-light,
+.theme-light .fey-hub {
+  --fey-bg: #f7f5fa;
+  --fey-surface: #ffffff;
+  --fey-surface-2: #f0ecf6;
+  --fey-border: #dcd5e6;
+  --fey-text: #2a2433;
+  --fey-muted: #6f6680;
+  --fey-accent: #7a56c2;
+  --fey-accent-strong: #643fae;
+  --fey-accent-text: #ffffff;
+  --fey-green: #2f8f5b;
+  --fey-amber: #a8781a;
+  --fey-red: #b84646;
+  --fey-blue: #3b75ad;
+  --fey-grey: #77708a;
+}
+
+.fey-hub .window-content {
+  background: var(--fey-bg);
+  color: var(--fey-text);
+  padding: 0;
+}
+
+/* ---------- Layout ---------- */
+
+.fey-hub-body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.fey-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 8px 10px 0;
+  border-bottom: 1px solid var(--fey-border);
+  background: var(--fey-surface);
+}
+
+.fey-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 6px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: none;
+  color: var(--fey-muted);
+  font-size: var(--font-size-13, 13px);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.fey-tab:hover { color: var(--fey-text); background: var(--fey-surface-2); }
+.fey-tab.active {
+  color: var(--fey-accent-strong);
+  border-bottom-color: var(--fey-accent);
+  font-weight: 600;
+}
+
+.fey-count {
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--fey-surface-2);
+  color: var(--fey-muted);
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+}
+
+.fey-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+}
+
+.fey-search {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 1px solid var(--fey-border);
+  border-radius: var(--fey-radius);
+  background: var(--fey-surface);
+  color: var(--fey-muted);
+}
+.fey-search input {
+  flex: 1;
+  border: none;
+  background: none;
+  box-shadow: none;
+  color: var(--fey-text);
+  height: 32px;
+}
+.fey-search input:focus { outline: none; box-shadow: none; }
+
+.fey-panel {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 2px dashed transparent;
+}
+.fey-panel.drag-over { border-color: var(--fey-accent); border-radius: var(--fey-radius); }
+
+.fey-setup {
+  margin: auto;
+  padding: 2rem;
+  text-align: center;
+  color: var(--fey-muted);
+}
+.fey-setup i { font-size: 2rem; margin-bottom: 0.5rem; }
+
+/* ---------- Buttons ---------- */
+
+.fey-hub .fey-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--fey-border);
+  border-radius: var(--fey-radius);
+  background: var(--fey-surface-2);
+  color: var(--fey-text);
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.fey-hub .fey-btn:hover { border-color: var(--fey-accent); }
+.fey-hub .fey-btn.primary {
+  background: var(--fey-accent);
+  border-color: var(--fey-accent);
+  color: var(--fey-accent-text);
+  font-weight: 600;
+}
+.fey-hub .fey-btn.primary:hover { background: var(--fey-accent-strong); }
+.fey-hub .fey-btn.subtle { background: none; color: var(--fey-muted); }
+
+.fey-hub .fey-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--fey-muted);
+  cursor: pointer;
+}
+.fey-hub .fey-icon-btn:hover { background: var(--fey-surface-2); color: var(--fey-text); }
+.fey-hub .fey-icon-btn.danger:hover { color: var(--fey-red); }
+
+/* ---------- Chips ---------- */
+
+.fey-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.fey-hub .fey-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--fey-border);
+  border-radius: 13px;
+  background: var(--fey-surface);
+  color: var(--fey-muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+.fey-hub .fey-chip.active {
+  border-color: var(--fey-accent);
+  color: var(--fey-accent-strong);
+  background: var(--fey-surface-2);
+}
+
+/* ---------- Cards ---------- */
+
+.fey-card {
+  border: 1px solid var(--fey-border);
+  border-left: 3px solid var(--fey-card-accent, var(--fey-border));
+  border-radius: var(--fey-radius);
+  background: var(--fey-surface);
+  transition: border-color 0.15s;
+}
+.fey-card[hidden] { display: none; }
+.fey-card.is-hidden { border-style: dashed; opacity: 0.85; }
+.fey-card.drag-over { border-color: var(--fey-accent); box-shadow: 0 0 0 2px var(--fey-accent); }
+.fey-card.flash { animation: fey-flash 1.2s ease-out; }
+@keyframes fey-flash {
+  0% { box-shadow: 0 0 0 3px var(--fey-accent); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+.fey-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  list-style: none;
+}
+summary.fey-card-header { cursor: pointer; }
+summary.fey-card-header::-webkit-details-marker { display: none; }
+summary.fey-card-header::marker { content: ""; }
+
+.fey-caret {
+  font-size: 10px;
+  color: var(--fey-muted);
+  transition: transform 0.15s;
+}
+details[open] > summary .fey-caret { transform: rotate(90deg); }
+
+.fey-card-title {
+  flex: 1;
+  font-weight: 600;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fey-spacer { flex: 1; }
+
+.fey-card-body {
+  padding: 0 12px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+details.fey-card .fey-card-body { border-top: 1px solid var(--fey-border); padding-top: 8px; }
+
+.fey-text {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.45;
+}
+.fey-line {
+  margin: 0;
+  color: var(--fey-muted);
+  font-size: 12px;
+}
+.fey-line i { width: 14px; text-align: center; }
+.fey-line strong { color: var(--fey-text); }
+
+.fey-link {
+  color: var(--fey-accent-strong);
+  cursor: pointer;
+  text-decoration: underline dotted;
+}
+
+.fey-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+.fey-meta {
+  flex: 1;
+  color: var(--fey-muted);
+  font-size: 11px;
+}
+.fey-card-controls { display: flex; gap: 2px; }
+
+.fey-empty {
+  margin: 2rem auto;
+  text-align: center;
+  color: var(--fey-muted);
+}
+.fey-hint {
+  margin: 0;
+  color: var(--fey-muted);
+  font-size: 12px;
+  font-style: italic;
+}
+
+/* ---------- Badges ---------- */
+
+.fey-badge {
+  --fey-badge: var(--fey-grey);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--fey-badge) 55%, transparent);
+  background: color-mix(in srgb, var(--fey-badge) 16%, transparent);
+  color: var(--fey-badge);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.fey-badge.is-hidden { --fey-badge: var(--fey-muted); font-weight: 400; }
+
+.fey-progress {
+  color: var(--fey-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Status colours (used by badges and card accents) */
+.status-active      { --fey-badge: var(--fey-blue);  --fey-card-accent: var(--fey-blue); }
+.status-on-hold     { --fey-badge: var(--fey-amber); --fey-card-accent: var(--fey-amber); }
+.status-completed   { --fey-badge: var(--fey-green); --fey-card-accent: var(--fey-green); }
+.status-failed      { --fey-badge: var(--fey-red);   --fey-card-accent: var(--fey-red); }
+.status-unverified,
+.rumour-unverified  { --fey-badge: var(--fey-amber); --fey-card-accent: var(--fey-amber); }
+.status-true,
+.rumour-true        { --fey-badge: var(--fey-green); --fey-card-accent: var(--fey-green); }
+.status-false,
+.rumour-false       { --fey-badge: var(--fey-red);   --fey-card-accent: var(--fey-red); }
+.disposition-friendly { --fey-badge: var(--fey-green); --fey-card-accent: var(--fey-green); }
+.disposition-neutral  { --fey-badge: var(--fey-amber); --fey-card-accent: var(--fey-amber); }
+.disposition-hostile  { --fey-badge: var(--fey-red);   --fey-card-accent: var(--fey-red); }
+.disposition-unknown  { --fey-badge: var(--fey-grey);  --fey-card-accent: var(--fey-grey); }
+.fey-chip.status-all  { --fey-badge: var(--fey-accent); }
+
+/* ---------- Quests ---------- */
+
+.fey-objective-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.fey-objective {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  cursor: pointer;
+}
+.fey-objective input { margin: 2px 0 0; flex: none; }
+.fey-objective.done span { text-decoration: line-through; color: var(--fey-muted); }
+
+/* ---------- Rumours ---------- */
+
+.fey-quote { color: var(--fey-card-accent); opacity: 0.8; }
+.fey-rumour-text { font-style: italic; font-size: 14px; }
+
+/* ---------- NPCs ---------- */
+
+.fey-portrait {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border: 1px solid var(--fey-border);
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: top;
+  background: var(--fey-surface-2);
+}
+.fey-linked { color: var(--fey-accent); font-size: 12px; }
+.fey-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* ---------- Forms (editor + permissions) ---------- */
+
+.fey-form-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.fey-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fey-editor .window-content,
+.fey-permissions .window-content { padding: 12px; }
+
+.fey-form .form-group > label { flex: 0 0 120px; color: var(--fey-muted); }
+.fey-form .form-group.stacked { flex-direction: column; align-items: stretch; }
+.fey-form .form-group.stacked > label { flex: none; }
+.fey-form textarea { min-height: 4em; resize: vertical; }
+
+.fey-objectives {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.fey-objective-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.fey-objective-row input[type="text"] { flex: 1; }
+.fey-objective-row input[type="checkbox"] { flex: none; margin: 0; }
+
+.fey-drop-zone {
+  padding: 12px;
+  border: 2px dashed var(--fey-border);
+  border-radius: var(--fey-radius);
+  color: var(--fey-muted);
+  text-align: center;
+  font-size: 12px;
+}
+.fey-drop-zone.drag-over { border-color: var(--fey-accent); color: var(--fey-accent-strong); }
+
+.fey-gm-only label { color: var(--fey-accent-strong) !important; }
+
+.fey-hub .form-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.fey-user-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.fey-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.fey-user:hover { background: var(--fey-surface-2); }
+.fey-user-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.fey-user-name { flex: 1; }

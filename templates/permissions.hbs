@@ -1,0 +1,27 @@
+<div class="fey-form-wrap">
+  <div class="fey-form">
+    <p class="fey-hint">{{localize "FEYHUB.Permissions.Hint"}}</p>
+    {{#unless ready}}
+    <p class="fey-empty">{{localize "FEYHUB.Warn.NotReady"}}</p>
+    {{/unless}}
+    <ul class="fey-user-list">
+      {{#each users}}
+      <li>
+        <label class="fey-user">
+          <span class="fey-user-dot" style="background: {{color}}"></span>
+          <span class="fey-user-name">{{name}}</span>
+          <input type="checkbox" name="users.{{id}}" {{checked canEdit}}>
+        </label>
+      </li>
+      {{else}}
+      <li class="fey-empty">{{localize "FEYHUB.Permissions.NoPlayers"}}</li>
+      {{/each}}
+    </ul>
+  </div>
+
+  <footer class="form-footer">
+    <button type="submit" class="fey-btn primary" {{#unless ready}}disabled{{/unless}}>
+      <i class="fa-solid fa-floppy-disk"></i> {{localize "FEYHUB.Save"}}
+    </button>
+  </footer>
+</div>

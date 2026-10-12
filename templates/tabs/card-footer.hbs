@@ -1,0 +1,23 @@
+<footer class="fey-card-footer">
+  <span class="fey-meta">
+    {{localize "FEYHUB.AddedBy"}} <strong>{{author}}</strong>{{#if editedBy}} · {{localize "FEYHUB.EditedBy"}} <strong>{{editedBy}}</strong>{{/if}}{{#if updated}} · {{updated}}{{/if}}
+  </span>
+  <span class="fey-card-controls">
+    {{#if isGM}}
+    <button type="button" class="fey-icon-btn" data-action="toggleHidden"
+            data-tooltip="{{#if hidden}}FEYHUB.Reveal{{else}}FEYHUB.Hide{{/if}}">
+      <i class="fa-solid {{#if hidden}}fa-eye{{else}}fa-eye-slash{{/if}}"></i>
+    </button>
+    {{/if}}
+    {{#if canEdit}}
+    <button type="button" class="fey-icon-btn" data-action="edit" data-tooltip="FEYHUB.Edit">
+      <i class="fa-solid fa-pen"></i>
+    </button>
+    {{/if}}
+    {{#if canDelete}}
+    <button type="button" class="fey-icon-btn danger" data-action="delete" data-tooltip="FEYHUB.Delete">
+      <i class="fa-solid fa-trash"></i>
+    </button>
+    {{/if}}
+  </span>
+</footer>

@@ -1,0 +1,26 @@
+{{#each rumours}}
+<article class="fey-card fey-rumour status-{{status}} {{#if hidden}}is-hidden{{/if}}" data-type="rumours" data-id="{{id}}" data-search="{{searchText}}">
+  <div class="fey-card-header">
+    <i class="fa-solid fa-quote-left fey-quote"></i>
+    <span class="fey-spacer"></span>
+    {{#if hidden}}<span class="fey-badge is-hidden"><i class="fa-solid fa-eye-slash"></i> {{localize "FEYHUB.Hidden"}}</span>{{/if}}
+    <span class="fey-badge rumour-{{status}}">{{statusLabel}}</span>
+  </div>
+  <div class="fey-card-body">
+    <p class="fey-text fey-rumour-text">{{text}}</p>
+    {{#if source}}
+    <p class="fey-line"><i class="fa-solid fa-ear-listen"></i> {{localize "FEYHUB.Rumour.HeardFrom"}}: <strong>{{source}}</strong></p>
+    {{/if}}
+    {{#if sourceNpc}}
+    <p class="fey-line"><i class="fa-solid fa-user"></i> {{localize "FEYHUB.Rumour.SourceNpc"}}:
+      <a class="fey-link" data-action="gotoNpc" data-npc="{{sourceNpc.id}}">{{sourceNpc.name}}</a></p>
+    {{/if}}
+    {{#if location}}
+    <p class="fey-line"><i class="fa-solid fa-location-dot"></i> {{localize "FEYHUB.Rumour.Location"}}: {{location}}</p>
+    {{/if}}
+    {{> "modules/fey-manager/templates/tabs/card-footer.hbs"}}
+  </div>
+</article>
+{{else}}
+<p class="fey-empty"><i class="fa-solid fa-comments"></i> {{localize "FEYHUB.Empty.rumours"}}</p>
+{{/each}}

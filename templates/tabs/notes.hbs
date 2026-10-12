@@ -1,0 +1,15 @@
+{{#each notes}}
+<article class="fey-card fey-note {{#if hidden}}is-hidden{{/if}}" data-type="notes" data-id="{{id}}" data-search="{{searchText}}">
+  <div class="fey-card-header">
+    <i class="fa-solid fa-note-sticky"></i>
+    <span class="fey-card-title">{{#if title}}{{title}}{{else}}{{localize "FEYHUB.Note.Untitled"}}{{/if}}</span>
+    {{#if hidden}}<span class="fey-badge is-hidden"><i class="fa-solid fa-eye-slash"></i> {{localize "FEYHUB.Hidden"}}</span>{{/if}}
+  </div>
+  <div class="fey-card-body">
+    <p class="fey-text">{{text}}</p>
+    {{> "modules/fey-manager/templates/tabs/card-footer.hbs"}}
+  </div>
+</article>
+{{else}}
+<p class="fey-empty"><i class="fa-solid fa-note-sticky"></i> {{localize "FEYHUB.Empty.notes"}}</p>
+{{/each}}
