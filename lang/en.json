@@ -18,12 +18,12 @@
     "UnknownUser": "Unknown",
     "NewTitle": "New {kind}",
     "EditTitle": "Edit {kind}",
-
     "Tabs": {
       "Quests": "Quests",
       "Rumours": "Rumours",
       "NPCs": "NPCs",
-      "Notes": "Notes"
+      "Notes": "Notes",
+      "Stash": "Stash"
     },
     "Singular": {
       "quests": "Quest",
@@ -43,7 +43,6 @@
       "npcs": "No NPCs recorded yet.",
       "notes": "No notes yet."
     },
-
     "Quest": {
       "Title": "Title",
       "StatusLabel": "Status",
@@ -96,7 +95,6 @@
       "Text": "Note",
       "Untitled": "Note"
     },
-
     "Permissions": {
       "Title": "Hub Editors",
       "Menu": "Choose Editors",
@@ -107,6 +105,104 @@
     "Warn": {
       "NoPermission": "You don't have permission to change the Party Hub.",
       "NotReady": "The Party Hub hasn't been set up yet. A GM needs to log in once to create it."
+    }
+  },
+  "FEYPARTY": {
+    "Title": "Party Stash",
+    "ControlTitle": "Party Stash",
+    "Keybinding": {
+      "Toggle": "Toggle Party Stash"
+    },
+    "Settings": {
+      "PlayersManage": {
+        "Name": "Players can manage the Party Stash",
+        "Hint": "Allow players (not just the GM) to add or remove currency types and delete resources. Everyone can always adjust amounts and add resources."
+      }
+    },
+    "Coffers": "Party Coffers",
+    "Resources": "Party Resources",
+    "Activity": "Activity Log",
+    "Amount": "Amount",
+    "Note": "Note (optional)",
+    "Deposit": "Deposit",
+    "Withdraw": "Withdraw",
+    "CurrencyName": "Currency name",
+    "CurrencyAbbr": "Abbr.",
+    "AddCurrency": "Add currency",
+    "RemoveCurrency": "Remove currency",
+    "ResourceName": "Resource name",
+    "Quantity": "Qty",
+    "Notes": "Notes",
+    "AddResource": "Add resource",
+    "RemoveResource": "Remove resource",
+    "NoCurrencies": "No currencies yet.",
+    "NoResources": "Nothing in the party stash yet. Add rations, torches, quest items, favours owed…",
+    "NoActivity": "No activity yet.",
+    "ClearLog": "Clear log",
+    "StepHint": "Shift-click: ×10 · Ctrl-click: ×100",
+    "Notify": {
+      "NoGM": "A GM must be logged in to change the Party Stash.",
+      "InvalidAmount": "Enter a positive whole amount.",
+      "Insufficient": "The party only has {amount} {currency}.",
+      "InsufficientPurse": "{name} only has {amount} {currency}.",
+      "NoActor": "That character could not be found.",
+      "NotOwner": "You don't own {name}.",
+      "NoMatchingCurrency": "None of the party's currencies match this character's coin.",
+      "AlreadyAdded": "That coin has already been added to the party stash.",
+      "NothingToSplit": "Nothing to divide: pick at least one character and a currency with enough coin for everyone.",
+      "NoSplitActors": "There are no player characters to divide the stash among.",
+      "LegacyActive": "The Party Stash is now part of Fey Manager. Disable the separate Fey Party module to avoid duplicate buttons.",
+      "Imported": "Your Party Stash from Fey Party has been imported into Fey Manager."
+    },
+    "Confirm": {
+      "RemoveCurrencyTitle": "Remove Currency",
+      "RemoveCurrency": "Remove <strong>{currency}</strong> from the party coffers? The {amount} held will be lost.",
+      "RemoveResourceTitle": "Remove Resource",
+      "RemoveResource": "Remove <strong>{name}</strong> from the party stash?",
+      "ClearLogTitle": "Clear Activity Log",
+      "ClearLog": "Clear the entire activity log for everyone?"
+    },
+    "Log": {
+      "Deposit": "deposited {amount} {currency}",
+      "Withdraw": "withdrew {amount} {currency}",
+      "SetCurrency": "set {currency} to {amount} (was {before})",
+      "AddCurrency": "added currency {currency}",
+      "RemoveCurrency": "removed currency {currency} ({amount} held)",
+      "AddResource": "added {quantity} × {name}",
+      "RemoveResource": "removed {name}",
+      "RenameResource": "renamed {before} to {name}",
+      "ResourceNotes": "updated notes on {name}",
+      "SetResource": "set {name} to {quantity} (was {before})",
+      "DepositFrom": "deposited {amounts} from {name}'s purse",
+      "WithdrawTo": "withdrew {amounts} into {name}'s purse",
+      "DepositChat": "deposited {amounts} from chat",
+      "Split": "divided the stash: {amounts} each to {names}"
+    },
+    "StashOnly": "Stash only (no character)",
+    "ActorHint": "Pick a character to take coin from their purse when depositing, or put it into their purse when withdrawing.",
+    "Split": {
+      "Button": "Divide among characters",
+      "Title": "Divide the Party Stash",
+      "Characters": "Characters",
+      "Currency": "Currency",
+      "Stash": "Stash",
+      "Each": "Each",
+      "Left": "Left in stash",
+      "Confirm": "Divide"
+    },
+    "Chat": {
+      "Add": "Add to Party Stash",
+      "Added": "Added to the party stash by {name}"
+    },
+    "Transfer": {
+      "Button": "Party Stash",
+      "Title": "Party Stash: {name}",
+      "Currency": "Currency",
+      "Purse": "Purse",
+      "Stash": "Stash",
+      "Amount": "Amount",
+      "Deposit": "Deposit to Stash",
+      "Withdraw": "Withdraw to Purse"
     }
   }
 }

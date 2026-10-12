@@ -10,11 +10,12 @@
     <button type="button" class="fey-tab {{#if active}}active{{/if}}" data-action="switchTab" data-tab="{{id}}">
       <i class="{{icon}}"></i>
       <span class="fey-tab-label">{{label}}</span>
-      <span class="fey-count">{{count}}</span>
+      {{#if hasCount}}<span class="fey-count">{{count}}</span>{{/if}}
     </button>
     {{/each}}
   </nav>
 
+  {{#unless isStash}}
   <div class="fey-toolbar">
     <label class="fey-search">
       <i class="fa-solid fa-magnifying-glass"></i>
@@ -31,12 +32,14 @@
     </button>
     {{/if}}
   </div>
+  {{/unless}}
 
-  <section class="fey-panel">
+  <section class="fey-panel {{#if isStash}}is-stash{{/if}}">
     {{#if isQuests}}{{> "modules/fey-manager/templates/tabs/quests.hbs"}}{{/if}}
     {{#if isRumours}}{{> "modules/fey-manager/templates/tabs/rumours.hbs"}}{{/if}}
     {{#if isNPCs}}{{> "modules/fey-manager/templates/tabs/npcs.hbs"}}{{/if}}
     {{#if isNotes}}{{> "modules/fey-manager/templates/tabs/notes.hbs"}}{{/if}}
+    {{#if isStash}}<div class="fey-stash">{{> "modules/fey-manager/templates/party-stash.hbs"}}</div>{{/if}}
   </section>
   {{/unless}}
 </div>

@@ -463,3 +463,237 @@ details.fey-card .fey-card-body { border-top: 1px solid var(--fey-border); paddi
 .fey-user:hover { background: var(--fey-surface-2); }
 .fey-user-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
 .fey-user-name { flex: 1; }
+
+/* Party Stash (standalone window and hub tab) */
+.fey-stash-window .window-content {
+  padding: 0;
+}
+
+.fey-stash .fp-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem 0.75rem;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.fey-stash .fp-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.fey-stash .fp-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  padding-bottom: 0.2rem;
+  font-size: var(--font-size-16, 1rem);
+  border-bottom: 1px solid var(--color-border, #7a7971);
+}
+
+.fey-stash summary.fp-heading {
+  cursor: pointer;
+  list-style: none;
+}
+.fey-stash summary.fp-heading::before {
+  content: "\f054";
+  font-family: var(--font-awesome, "Font Awesome 6 Pro");
+  font-weight: 900;
+  font-size: 0.7em;
+  transition: transform 0.15s;
+}
+.fey-stash details[open] > summary.fp-heading::before {
+  transform: rotate(90deg);
+}
+
+.fey-stash .fp-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.fey-stash .fp-row {
+  display: grid;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.fey-stash .fp-currency {
+  grid-template-columns: 1fr auto 6rem auto auto;
+}
+
+.fey-stash .fp-resource {
+  grid-template-columns: 1fr auto 4.5rem auto auto;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px dashed var(--color-border-light-2, rgba(128, 128, 128, 0.3));
+}
+.fey-stash .fp-resource .fp-notes {
+  grid-column: 1 / -1;
+  font-size: var(--font-size-12, 0.8rem);
+  opacity: 0.85;
+}
+
+.fey-stash .fp-label {
+  font-weight: bold;
+}
+.fey-stash .fp-abbr {
+  font-weight: normal;
+  font-size: var(--font-size-12, 0.8rem);
+  opacity: 0.7;
+  text-transform: lowercase;
+}
+
+.fey-stash .fp-num {
+  text-align: center;
+}
+
+.fey-stash button.fp-icon {
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  min-height: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.fey-stash button.fp-icon i {
+  margin: 0;
+}
+.fey-stash button.fp-danger:hover {
+  color: var(--color-level-error, #c03030);
+}
+
+.fey-stash .fp-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+}
+.fey-stash .fp-form > input,
+.fey-stash .fp-form > select {
+  flex: 1 1 6rem;
+  min-width: 0;
+}
+.fey-stash .fp-form > .fp-short {
+  flex: 0 0 4.5rem;
+}
+.fey-stash .fp-form > button {
+  flex: 0 0 auto;
+  width: auto;
+  white-space: nowrap;
+}
+.fey-stash .fp-transaction {
+  padding: 0.4rem;
+  border-radius: 4px;
+  background: var(--color-cool-5-25, rgba(128, 128, 128, 0.1));
+}
+
+.fey-stash .fp-empty {
+  margin: 0;
+  font-style: italic;
+  opacity: 0.7;
+}
+
+.fey-stash .fp-log-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 12rem;
+  overflow-y: auto;
+  font-size: var(--font-size-12, 0.8rem);
+}
+.fey-stash .fp-log-list li {
+  padding: 0.15rem 0;
+  border-bottom: 1px dotted var(--color-border-light-2, rgba(128, 128, 128, 0.3));
+}
+.fey-stash .fp-log-list time {
+  opacity: 0.6;
+  margin-right: 0.25rem;
+}
+.fey-stash .fp-clear {
+  align-self: flex-end;
+  width: auto;
+}
+
+.fey-stash .fp-actor {
+  flex: 1 1 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.fey-stash .fp-actor select {
+  flex: 1;
+}
+
+/* Character ↔ stash transfer dialog */
+.fey-party-transfer .fp-transfer-table {
+  margin: 0 0 0.5rem;
+}
+.fey-party-transfer .fp-transfer-table th,
+.fey-party-transfer .fp-transfer-table td {
+  text-align: center;
+  padding: 0.2rem 0.4rem;
+}
+.fey-party-transfer .fp-transfer-table td:first-child,
+.fey-party-transfer .fp-transfer-table th:first-child {
+  text-align: left;
+}
+.fey-party-transfer .fp-transfer-table input {
+  width: 5rem;
+  text-align: center;
+}
+
+/* Button beside the coins on the dnd5e character sheet */
+.fey-stash-sheet-button {
+  flex: none;
+}
+
+/* "Add to Party Stash" button on coin-only chat messages */
+.chat-message .fey-party-chat {
+  margin-top: 0.4rem;
+  font-size: var(--font-size-12, 0.75rem);
+  opacity: 0.85;
+}
+.chat-message .fey-party-chat button {
+  width: 100%;
+  font-size: var(--font-size-12, 0.75rem);
+}
+
+/* Divide-the-stash button and dialog */
+.fey-stash .fp-heading .fp-split {
+  margin-left: auto;
+}
+.fey-party-transfer .fp-split-actors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin-bottom: 0.5rem;
+}
+.fey-party-transfer .fp-split-actors label {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.fey-party-transfer .fp-transfer-table td input[type="checkbox"] {
+  width: auto;
+}
+
+/* Inside the hub's Stash tab the hub panel does the scrolling */
+.fey-hub .fey-stash .fp-body {
+  height: auto;
+  overflow: visible;
+  padding: 0;
+}
+.fey-hub .fey-panel.is-stash {
+  padding-top: 10px;
+}
+.fey-hub .fey-stash .fp-heading {
+  border-bottom-color: var(--fey-border);
+}

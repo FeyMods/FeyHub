@@ -5,6 +5,7 @@ import {
 } from "../data/hub-store.mjs";
 import { FeyEntryEditor } from "./entry-editor.mjs";
 import { FeyHubPermissionsApp } from "./permissions-app.mjs";
+import { STASH_ACTIONS, prepareStashContext, attachStashListeners, syncStashDrafts } from "../stash/stash-ui.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -12,7 +13,8 @@ const TABS = [
   { id: "quests", icon: "fa-solid fa-scroll", label: "FEYHUB.Tabs.Quests" },
   { id: "rumours", icon: "fa-solid fa-comments", label: "FEYHUB.Tabs.Rumours" },
   { id: "npcs", icon: "fa-solid fa-users", label: "FEYHUB.Tabs.NPCs" },
-  { id: "notes", icon: "fa-solid fa-note-sticky", label: "FEYHUB.Tabs.Notes" }
+  { id: "notes", icon: "fa-solid fa-note-sticky", label: "FEYHUB.Tabs.Notes" },
+  { id: "stash", icon: "fa-solid fa-sack-dollar", label: "FEYHUB.Tabs.Stash" }
 ];
 
 const DEFAULT_NPC_IMG = "icons/svg/mystery-man.svg";
@@ -79,7 +81,8 @@ export class FeyHubApp extends HandlebarsApplicationMixin(ApplicationV2) {
       openActor: FeyHubApp.#onOpenActor,
       unlinkActor: FeyHubApp.#onUnlinkActor,
       gotoNpc: FeyHubApp.#onGotoNpc,
-      permissions: FeyHubApp.#onPermissions
+      permissions: FeyHubApp.#onPermissions,
+      ...STASH_ACTIONS
     }
   };
 
@@ -95,6 +98,7 @@ export class FeyHubApp extends HandlebarsApplicationMixin(ApplicationV2) {
   questFilter = "all";
   search = "";
   expanded = new Set();
+  stashLogOpen = false;
 
   /* -------------------------------------------- */
   /*  Context                                     */
@@ -192,6 +196,7 @@ export class FeyHubApp extends HandlebarsApplicationMixin(ApplicationV2) {
       ...t,
       label: game.i18n.localize(t.label),
       count: counts[t.id],
+      hasCount: t.id in counts,
       active: t.id === this.activeTab
     }));
 
@@ -205,19 +210,33 @@ export class FeyHubApp extends HandlebarsApplicationMixin(ApplicationV2) {
       isRumours: this.activeTab === "rumours",
       isNPCs: this.activeTab === "npcs",
       isNotes: this.activeTab === "notes",
+      isStash: this.activeTab === "stash",
       addLabel: game.i18n.localize(`FEYHUB.Add.${this.activeTab}`),
       search: this.search,
       questFilters,
       quests,
       rumours,
       npcs: npcList,
-      notes
+      notes,
+      // The stash partial reads its data from the root context.
+      ...(this.activeTab === "stash" ? prepareStashContext(this.stashLogOpen) : {})
     };
   }
 
   /* -------------------------------------------- */
   /*  Rendering                                   */
   /* -------------------------------------------- */
+
+  _onFirstRender(context, options) {
+    super._onFirstRender(context, options);
+    attachStashListeners(this);
+  }
+
+  /** Keep half-typed stash entries when another user's change re-renders the hub. */
+  _syncPartState(partId, newElement, priorElement, state) {
+    syncStashDrafts(newElement, priorElement);
+    super._syncPartState(partId, newElement, priorElement, state);
+  }
 
   async _onRender(context, options) {
     await super._onRender(context, options);
