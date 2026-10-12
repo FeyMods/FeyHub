@@ -2,6 +2,7 @@ import { MODULE_ID, LEGACY_ID, DEFAULT_STATE } from "./constants.mjs";
 import { registerSocket } from "./store.mjs";
 import { registerSheetIntegration } from "./purse.mjs";
 import { registerChatIntegration } from "./chat.mjs";
+import { readWorldSetting } from "../data/migrate.mjs";
 
 /**
  * Register the Party Stash's settings, keybinding, sheet buttons and chat buttons.
@@ -66,25 +67,12 @@ export async function readyStash() {
   }
   if (game.settings.get(MODULE_ID, "stashImported")) return;
 
-  const stash = readLegacySetting("stash");
+  const stash = readWorldSetting(LEGACY_ID, "stash");
   if (stash && typeof stash === "object") {
     await game.settings.set(MODULE_ID, "stash", stash);
-    const playersManage = readLegacySetting("playersManage");
+    const playersManage = readWorldSetting(LEGACY_ID, "playersManage");
     if (typeof playersManage === "boolean") await game.settings.set(MODULE_ID, "playersManage", playersManage);
     ui.notifications.info("FEYPARTY.Notify.Imported", { localize: true });
   }
   await game.settings.set(MODULE_ID, "stashImported", true);
-}
-
-/** Read a Fey Party world setting directly from storage; that module needn't be active. */
-function readLegacySetting(key) {
-  let value = game.settings.storage.get("world")?.getSetting(`${LEGACY_ID}.${key}`)?.value;
-  if (typeof value === "string") {
-    try {
-      value = JSON.parse(value);
-    } catch {
-      return null;
-    }
-  }
-  return value ?? null;
 }

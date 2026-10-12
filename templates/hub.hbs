@@ -35,11 +35,11 @@
   {{/unless}}
 
   <section class="fey-panel {{#if isStash}}is-stash{{/if}}">
-    {{#if isQuests}}{{> "modules/fey-manager/templates/tabs/quests.hbs"}}{{/if}}
-    {{#if isRumours}}{{> "modules/fey-manager/templates/tabs/rumours.hbs"}}{{/if}}
-    {{#if isNPCs}}{{> "modules/fey-manager/templates/tabs/npcs.hbs"}}{{/if}}
-    {{#if isNotes}}{{> "modules/fey-manager/templates/tabs/notes.hbs"}}{{/if}}
-    {{#if isStash}}<div class="fey-stash">{{> "modules/fey-manager/templates/party-stash.hbs"}}</div>{{/if}}
+    {{#if isQuests}}{{> "modules/FeyHub/templates/tabs/quests.hbs"}}{{/if}}
+    {{#if isRumours}}{{> "modules/FeyHub/templates/tabs/rumours.hbs"}}{{/if}}
+    {{#if isNPCs}}{{> "modules/FeyHub/templates/tabs/npcs.hbs"}}{{/if}}
+    {{#if isNotes}}{{> "modules/FeyHub/templates/tabs/notes.hbs"}}{{/if}}
+    {{#if isStash}}<div class="fey-stash">{{> "modules/FeyHub/templates/party-stash.hbs"}}</div>{{/if}}
   </section>
   {{/unless}}
 </div>

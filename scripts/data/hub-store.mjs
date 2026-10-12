@@ -8,7 +8,10 @@
  * Entries are stored keyed by id so concurrent edits by different users merge.
  */
 
-export const MODULE_ID = "fey-manager";
+export const MODULE_ID = "FeyHub";
+
+/** The module's id before it was renamed; its world data is migrated once. */
+export const PREVIOUS_ID = "fey-manager";
 export const TYPES = ["quests", "rumours", "npcs", "notes"];
 
 export const QUEST_STATUSES = ["active", "on-hold", "completed", "failed"];

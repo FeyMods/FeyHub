@@ -1,4 +1,4 @@
-import { MODULE_ID } from "../data/hub-store.mjs";
+import { MODULE_ID, PREVIOUS_ID } from "../data/hub-store.mjs";
 
 export { MODULE_ID };
 export const SOCKET = `module.${MODULE_ID}`;
@@ -21,9 +21,10 @@ export const DEFAULT_STATE = {
 
 /**
  * Who added a coin chat message to the stash, if anyone. Messages added before the stash
- * moved into this module carry the old module's flag, which is read directly because
- * getFlag() rejects scopes of inactive modules.
+ * moved into this module, or before this module was renamed, carry an older flag, which is
+ * read directly because getFlag() rejects scopes of inactive modules.
  */
 export function depositedFlag(message) {
-  return message?.flags?.[MODULE_ID]?.deposited ?? message?.flags?.[LEGACY_ID]?.deposited ?? null;
+  const flags = message?.flags ?? {};
+  return flags[MODULE_ID]?.deposited ?? flags[PREVIOUS_ID]?.deposited ?? flags[LEGACY_ID]?.deposited ?? null;
 }
