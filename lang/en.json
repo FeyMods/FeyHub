@@ -105,6 +105,9 @@
     "Warn": {
       "NoPermission": "You don't have permission to change the Party Hub.",
       "NotReady": "The Party Hub hasn't been set up yet. A GM needs to log in once to create it."
+    },
+    "Notify": {
+      "Migrated": "FeyHub's data has been carried over from its old module id (fey-manager)."
     }
   },
   "FEYPARTY": {

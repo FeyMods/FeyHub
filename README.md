@@ -13,7 +13,7 @@ Click the **book** icon (<i>fa-book-atlas</i>) in the **Token controls** on the 
 Macros and other modules can also open it:
 
 ```js
-game.modules.get("fey-manager").api.toggle();
+game.modules.get("FeyHub").api.toggle();
 ```
 
 ## Opening the Party Stash
@@ -21,7 +21,7 @@ The stash is a tab in the hub, and it also keeps its own ways in:
 - The **sack-of-coins** icon in the Token controls opens the stash in its own window.
 - The **sack-of-coins** button beside the coins on a character sheet, and the same entry in the sheet's header menu, open a dialog for moving coin between that character and the stash.
 - You can bind a key to *Toggle Party Stash* under *Configure Controls*.
-- Macros can call `game.modules.get("fey-manager").api.stash.toggle()`.
+- Macros can call `game.modules.get("FeyHub").api.stash.toggle()`.
 
 Stash changes are passed to the GM's client and applied there, so **a GM must be logged in** for players to change the stash. Everyone can still view it without a GM. The world setting *Players can manage the Party Stash* controls whether players can add or remove currency types and delete resources.
 
@@ -29,7 +29,9 @@ Stash changes are passed to the GM's client and applied there, so **a GM must be
 The first time a GM logs in with this version, any existing Fey Party stash (coin, resources, activity log and the *players can manage* setting) is copied into FeyHub. Chat messages that were already added to the stash stay marked as added. After that, **disable the separate Fey Party module**, otherwise you'll get duplicate buttons. The GM is shown a reminder while both modules are enabled.
 
 ## Setup
-1. Copy or symlink this folder into `{UserData}/Data/modules/fey-manager`.
+1. In Foundry, go to *Add-on Modules → Install Module* and paste this manifest URL:
+   `https://github.com/FeyMods/FeyHub/releases/latest/download/module.json`
+   (For development, copy or symlink this folder into `{UserData}/Data/modules/FeyHub` instead.)
 2. Enable **FeyHub** in your world.
 3. Log in as GM once. The module creates two journal entries in a *FeyHub* folder (worlds set up before the rename keep their *Fey Manager* names):
    - **FeyHub**: the shared data. Everyone can read it.

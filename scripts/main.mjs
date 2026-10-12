@@ -3,6 +3,7 @@ import { FeyHubApp } from "./apps/hub-app.mjs";
 import { FeyHubPermissionsApp } from "./apps/permissions-app.mjs";
 import { FeyStashApp } from "./stash/stash-app.mjs";
 import { registerStash, readyStash } from "./stash/setup.mjs";
+import { registerMigration, migrateFromPreviousId } from "./data/migrate.mjs";
 
 const TEMPLATE_ROOT = `modules/${MODULE_ID}/templates`;
 
@@ -20,6 +21,8 @@ Hooks.once("init", () => {
     type: String,
     default: ""
   });
+
+  registerMigration();
 
   game.settings.registerMenu(MODULE_ID, "permissions", {
     name: "FEYHUB.Permissions.Title",
@@ -60,6 +63,8 @@ Hooks.once("init", () => {
 });
 
 Hooks.once("ready", async () => {
+  // Before anything reads the settings or creates fresh journals.
+  await migrateFromPreviousId();
   await readyStash();
   await ensureJournals();
   FeyHubApp.refresh();
