@@ -1,6 +1,8 @@
 import { MODULE_ID, ensureJournals, isHubJournal } from "./data/hub-store.mjs";
 import { FeyHubApp } from "./apps/hub-app.mjs";
 import { FeyHubPermissionsApp } from "./apps/permissions-app.mjs";
+import { FeyStashApp } from "./stash/stash-app.mjs";
+import { registerStash, readyStash } from "./stash/setup.mjs";
 
 const TEMPLATE_ROOT = `modules/${MODULE_ID}/templates`;
 
@@ -28,21 +30,37 @@ Hooks.once("init", () => {
     restricted: true
   });
 
+  registerStash({
+    refresh: () => {
+      FeyStashApp.refresh();
+      FeyHubApp.refresh();
+    },
+    toggle: () => FeyStashApp.toggle()
+  });
+
   foundry.applications.handlebars.loadTemplates([
     `${TEMPLATE_ROOT}/tabs/quests.hbs`,
     `${TEMPLATE_ROOT}/tabs/rumours.hbs`,
     `${TEMPLATE_ROOT}/tabs/npcs.hbs`,
     `${TEMPLATE_ROOT}/tabs/notes.hbs`,
-    `${TEMPLATE_ROOT}/tabs/card-footer.hbs`
+    `${TEMPLATE_ROOT}/tabs/card-footer.hbs`,
+    `${TEMPLATE_ROOT}/party-stash.hbs`
   ]);
 
   game.modules.get(MODULE_ID).api = {
     open: () => FeyHubApp.instance.render({ force: true }),
-    toggle: () => FeyHubApp.toggle()
+    toggle: () => FeyHubApp.toggle(),
+    stash: {
+      open: () => FeyStashApp.instance.render({ force: true }),
+      close: () => FeyStashApp.instance.close(),
+      toggle: () => FeyStashApp.toggle(),
+      refresh: () => FeyStashApp.refresh()
+    }
   };
 });
 
 Hooks.once("ready", async () => {
+  await readyStash();
   await ensureJournals();
   FeyHubApp.refresh();
 });
@@ -60,6 +78,15 @@ Hooks.on("getSceneControlButtons", controls => {
     visible: true,
     onChange: () => FeyHubApp.toggle()
   };
+  tokens.tools.feyStash = {
+    name: "feyStash",
+    title: "FEYPARTY.ControlTitle",
+    icon: "fa-solid fa-sack-dollar",
+    order: Object.keys(tokens.tools).length,
+    button: true,
+    visible: true,
+    onChange: () => FeyStashApp.toggle()
+  };
 });
 
 // Keep every open hub in sync with the backing journals.
@@ -76,8 +103,9 @@ Hooks.on("deleteJournalEntry", doc => {
   FeyHubApp.refresh();
 });
 
+// The stash settings refresh through their own onChange handlers.
 Hooks.on("updateSetting", setting => {
-  if (setting.key?.startsWith(`${MODULE_ID}.`)) FeyHubApp.refresh();
+  if ([`${MODULE_ID}.hubJournalId`, `${MODULE_ID}.secretJournalId`].includes(setting.key)) FeyHubApp.refresh();
 });
 
 // Linked actors may change name, portrait or permissions.

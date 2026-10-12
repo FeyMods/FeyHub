@@ -6,6 +6,7 @@ A Foundry VTT **V13** module that gives the GM and players one shared hub for:
 - **Rumours**: what was heard, who or where it came from (free text and/or a linked NPC entry), where it was heard, and whether it's confirmed.
 - **NPCs**: name, short description and disposition. You can optionally link an NPC to an Actor so players who have permission can open its sheet.
 - **Notes**: short free-form notes.
+- **Stash**: the Party Stash (formerly the separate *Fey Party* module). It has shared coin and custom currencies, party resources, transfers to and from character purses (dnd5e), dividing coin between characters, "Add to Party Stash" buttons on chat messages that contain only coin, and an activity log.
 
 ## Opening the hub
 Click the **book** icon (<i>fa-book-atlas</i>) in the **Token controls** on the left-hand toolbar. Click it again to close the hub.
@@ -14,6 +15,18 @@ Macros and other modules can also open it:
 ```js
 game.modules.get("fey-manager").api.toggle();
 ```
+
+## Opening the Party Stash
+The stash is a tab in the hub, and it also keeps its own ways in:
+- The **sack-of-coins** icon in the Token controls opens the stash in its own window.
+- The **sack-of-coins** button beside the coins on a character sheet, and the same entry in the sheet's header menu, open a dialog for moving coin between that character and the stash.
+- You can bind a key to *Toggle Party Stash* under *Configure Controls*.
+- Macros can call `game.modules.get("fey-manager").api.stash.toggle()`.
+
+Stash changes are passed to the GM's client and applied there, so **a GM must be logged in** for players to change the stash. Everyone can still view it without a GM. The world setting *Players can manage the Party Stash* controls whether players can add or remove currency types and delete resources.
+
+### Coming from Fey Party
+The first time a GM logs in with this version, any existing Fey Party stash (coin, resources, activity log and the *players can manage* setting) is copied into Fey Manager. Chat messages that were already added to the stash stay marked as added. After that, **disable the separate Fey Party module**, otherwise you'll get duplicate buttons. The GM is shown a reminder while both modules are enabled.
 
 ## Setup
 1. Copy or symlink this folder into `{UserData}/Data/modules/fey-manager`.

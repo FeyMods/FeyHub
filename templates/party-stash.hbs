@@ -1,0 +1,140 @@
+<div class="fp-body">
+
+  {{!-- Currency --}}
+  <section class="fp-section fp-coffers">
+    <header class="fp-heading">
+      <i class="fa-solid fa-coins"></i>
+      <span class="fp-heading-label">{{localize "FEYPARTY.Coffers"}}</span>
+      {{#if canManage}}
+      <button type="button" class="fey-icon-btn fp-split" data-action="split" data-tooltip="FEYPARTY.Split.Button">
+        <i class="fa-solid fa-people-arrows"></i>
+      </button>
+      {{/if}}
+    </header>
+
+    {{#if currencies.length}}
+    <ol class="fp-list">
+      {{#each currencies}}
+      <li class="fp-row fp-currency" data-id="{{id}}">
+        <span class="fp-label">{{label}} <span class="fp-abbr">{{abbr}}</span></span>
+        <span class="fp-stepper">
+          <button type="button" class="fp-step" data-action="adjustCurrency" data-delta="-1"
+                  data-tooltip="{{localize "FEYPARTY.StepHint"}}"><i class="fa-solid fa-minus"></i></button>
+          <input type="number" class="fp-num" data-field="currencyAmount" value="{{amount}}" min="0" step="1">
+          <button type="button" class="fp-step" data-action="adjustCurrency" data-delta="1"
+                  data-tooltip="{{localize "FEYPARTY.StepHint"}}"><i class="fa-solid fa-plus"></i></button>
+        </span>
+        {{#if @root.canManage}}
+        <button type="button" class="fey-icon-btn danger" data-action="removeCurrency"
+                data-tooltip="FEYPARTY.RemoveCurrency"><i class="fa-solid fa-trash"></i></button>
+        {{/if}}
+      </li>
+      {{/each}}
+    </ol>
+
+    <div class="fp-form fp-transaction">
+      <input type="number" class="fp-short" data-draft="txAmount" min="1" step="1" placeholder="{{localize "FEYPARTY.Amount"}}">
+      <select data-draft="txCurrency">
+        {{#each currencies}}<option value="{{id}}">{{label}}</option>{{/each}}
+      </select>
+      {{#if actors.length}}
+      <label class="fp-actor" data-tooltip="FEYPARTY.ActorHint">
+        <i class="fa-solid fa-user"></i>
+        <select data-draft="txActor">
+          <option value="">{{localize "FEYPARTY.StashOnly"}}</option>
+          {{#each actors}}<option value="{{uuid}}" {{#if selected}}selected{{/if}}>{{name}}</option>{{/each}}
+        </select>
+      </label>
+      {{/if}}
+      <input type="text" class="fp-note" data-draft="txNote" maxlength="120" placeholder="{{localize "FEYPARTY.Note"}}">
+      <div class="fp-buttons">
+        <button type="button" class="fey-btn primary" data-action="transaction" data-direction="deposit">
+          <i class="fa-solid fa-piggy-bank"></i> {{localize "FEYPARTY.Deposit"}}
+        </button>
+        <button type="button" class="fey-btn" data-action="transaction" data-direction="withdraw">
+          <i class="fa-solid fa-hand-holding-dollar"></i> {{localize "FEYPARTY.Withdraw"}}
+        </button>
+      </div>
+    </div>
+    {{else}}
+    <p class="fp-empty">{{localize "FEYPARTY.NoCurrencies"}}</p>
+    {{/if}}
+
+    {{#if canManage}}
+    <div class="fp-form fp-add">
+      <input type="text" data-draft="currencyLabel" maxlength="32" placeholder="{{localize "FEYPARTY.CurrencyName"}}">
+      <input type="text" data-draft="currencyAbbr" maxlength="6" class="fp-short" placeholder="{{localize "FEYPARTY.CurrencyAbbr"}}">
+      <button type="button" class="fey-btn subtle" data-action="addCurrency" data-default>
+        <i class="fa-solid fa-plus"></i> {{localize "FEYPARTY.AddCurrency"}}
+      </button>
+    </div>
+    {{/if}}
+  </section>
+
+  {{!-- Resources --}}
+  <section class="fp-section fp-resources">
+    <header class="fp-heading">
+      <i class="fa-solid fa-box-open"></i>
+      <span class="fp-heading-label">{{localize "FEYPARTY.Resources"}}</span>
+      {{#if resources.length}}<span class="fey-count">{{resources.length}}</span>{{/if}}
+    </header>
+
+    {{#if resources.length}}
+    <ol class="fp-list">
+      {{#each resources}}
+      <li class="fp-row fp-resource" data-id="{{id}}">
+        <input type="text" class="fp-name fp-inline" data-field="resourceName" value="{{name}}" maxlength="64">
+        <span class="fp-stepper">
+          <button type="button" class="fp-step" data-action="adjustResource" data-delta="-1"
+                  data-tooltip="{{localize "FEYPARTY.StepHint"}}"><i class="fa-solid fa-minus"></i></button>
+          <input type="number" class="fp-num" data-field="resourceQty" value="{{quantity}}" min="0" step="1">
+          <button type="button" class="fp-step" data-action="adjustResource" data-delta="1"
+                  data-tooltip="{{localize "FEYPARTY.StepHint"}}"><i class="fa-solid fa-plus"></i></button>
+        </span>
+        {{#if @root.canManage}}
+        <button type="button" class="fey-icon-btn danger" data-action="removeResource"
+                data-tooltip="FEYPARTY.RemoveResource"><i class="fa-solid fa-trash"></i></button>
+        {{/if}}
+        <input type="text" class="fp-notes fp-inline" data-field="resourceNotes" value="{{notes}}" maxlength="500"
+               placeholder="{{localize "FEYPARTY.Notes"}}">
+      </li>
+      {{/each}}
+    </ol>
+    {{else}}
+    <p class="fp-empty"><i class="fa-solid fa-box-open"></i> {{localize "FEYPARTY.NoResources"}}</p>
+    {{/if}}
+
+    <div class="fp-form fp-add">
+      <input type="text" data-draft="resourceName" maxlength="64" placeholder="{{localize "FEYPARTY.ResourceName"}}">
+      <input type="number" data-draft="resourceQty" min="0" step="1" class="fp-short" placeholder="{{localize "FEYPARTY.Quantity"}}">
+      <input type="text" data-draft="resourceNotes" maxlength="500" placeholder="{{localize "FEYPARTY.Notes"}}">
+      <button type="button" class="fey-btn subtle" data-action="addResource" data-default>
+        <i class="fa-solid fa-plus"></i> {{localize "FEYPARTY.AddResource"}}
+      </button>
+    </div>
+  </section>
+
+  {{!-- Activity log --}}
+  <details class="fp-section fp-log" {{#if logOpen}}open{{/if}}>
+    <summary class="fp-heading">
+      <i class="fa-solid fa-chevron-right fey-caret"></i>
+      <i class="fa-solid fa-scroll"></i>
+      <span class="fp-heading-label">{{localize "FEYPARTY.Activity"}}</span>
+      {{#if log.length}}<span class="fey-count">{{log.length}}</span>{{/if}}
+    </summary>
+    {{#if log.length}}
+    <ol class="fp-log-list">
+      {{#each log}}
+      <li><strong>{{user}}</strong> {{text}} <time title="{{timeLabel}}">{{timeLabel}}</time></li>
+      {{/each}}
+    </ol>
+    {{#if isGM}}
+    <button type="button" class="fey-btn subtle fp-clear" data-action="clearLog">
+      <i class="fa-solid fa-broom"></i> {{localize "FEYPARTY.ClearLog"}}
+    </button>
+    {{/if}}
+    {{else}}
+    <p class="fp-empty">{{localize "FEYPARTY.NoActivity"}}</p>
+    {{/if}}
+  </details>
+</div>
