@@ -6,7 +6,7 @@ A Foundry VTT **V13 and V14** module that gives the GM and players one shared hu
 - **Rumours**: what was heard, who or where it came from (free text and/or a linked NPC entry), where it was heard, and whether it's confirmed.
 - **NPCs**: name, short description and disposition. You can optionally link an NPC to an Actor so players who have permission can open its sheet.
 - **Notes**: short free-form notes.
-- **Stash**: the Party Stash (formerly the separate *Fey Party* module). It has shared coin and custom currencies, party resources, transfers to and from character purses (dnd5e), dividing coin between characters, "Add to Party Stash" buttons on chat messages that contain only coin, and an activity log.
+- **Stash**: the Party Stash. It has shared coin and custom currencies, party resources, transfers to and from character purses (dnd5e), dividing coin between characters, "Add to Party Stash" buttons on chat messages that contain only coin, and an activity log.
 
 ## Opening the hub
 Click the **book** icon (<i>fa-book-atlas</i>) in the **Token controls** on the left-hand toolbar. Click it again to close the hub.
@@ -25,19 +25,29 @@ The stash is a tab in the hub, and it also keeps its own ways in:
 
 Stash changes are passed to the GM's client and applied there, so **a GM must be logged in** for players to change the stash. Everyone can still view it without a GM. The world setting *Players can manage the Party Stash* controls whether players can add or remove currency types and delete resources.
 
-### Coming from Fey Party
-The first time a GM logs in with this version, any existing Fey Party stash (coin, resources, activity log and the *players can manage* setting) is copied into FeyHub. Chat messages that were already added to the stash stay marked as added. After that, **disable the separate Fey Party module**, otherwise you'll get duplicate buttons. The GM is shown a reminder while both modules are enabled.
+## Installation
+FeyHub needs Foundry VTT **V13 or V14**.
 
-## Setup
-1. In Foundry, go to *Add-on Modules → Install Module* and paste this manifest URL:
-   `https://github.com/FeyMods/FeyHub/releases/latest/download/module.json`
-   (For development, copy or symlink this folder into `{UserData}/Data/modules/FeyHub` instead.)
-2. Enable **FeyHub** in your world.
-3. Log in as GM once. The module creates two journal entries in a *FeyHub* folder (worlds set up before the rename keep their *Fey Manager* names):
-   - **FeyHub**: the shared data. Everyone can read it.
-   - **FeyHub (GM)**: holds entries the GM has hidden from players.
+1. Open Foundry and go to the **Add-on Modules** tab on the setup screen.
+2. Click **Install Module**.
+3. Paste this manifest URL into the **Manifest URL** field at the bottom of the window and click **Install**:
 
-   Don't delete these journals. They store all of the hub's data.
+   ```
+   https://github.com/FeyMods/FeyHub/releases/latest/download/module.json
+   ```
+
+4. Launch your world, open *Game Settings → Manage Modules*, tick **FeyHub** and click **Save Module Settings**.
+
+Foundry checks the same URL for updates, so new releases show up under *Add-on Modules → Check for Updates*.
+
+**Manual install:** download `module.zip` from the [latest release](https://github.com/FeyMods/FeyHub/releases/latest) and extract it into `{UserData}/Data/modules/FeyHub`. For development, copy or symlink this repository there instead.
+
+## First-time setup
+Log in as GM once after enabling the module. It creates two journal entries in a *FeyHub* folder:
+- **FeyHub**: the shared data. Everyone can read it.
+- **FeyHub (GM)**: holds entries the GM has hidden from players.
+
+Don't delete these journals. They store all of the hub's data.
 
 ## Who can edit
 Open the **lock** icon in the hub toolbar, or go to *Game Settings → Configure Settings → FeyHub → Choose Editors*, and tick the players who may edit.
