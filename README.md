@@ -1,4 +1,4 @@
-# Fey Manager – Party Hub
+# FeyHub
 
 A Foundry VTT **V13** module that gives the GM and players one shared hub for:
 
@@ -26,19 +26,19 @@ The stash is a tab in the hub, and it also keeps its own ways in:
 Stash changes are passed to the GM's client and applied there, so **a GM must be logged in** for players to change the stash. Everyone can still view it without a GM. The world setting *Players can manage the Party Stash* controls whether players can add or remove currency types and delete resources.
 
 ### Coming from Fey Party
-The first time a GM logs in with this version, any existing Fey Party stash (coin, resources, activity log and the *players can manage* setting) is copied into Fey Manager. Chat messages that were already added to the stash stay marked as added. After that, **disable the separate Fey Party module**, otherwise you'll get duplicate buttons. The GM is shown a reminder while both modules are enabled.
+The first time a GM logs in with this version, any existing Fey Party stash (coin, resources, activity log and the *players can manage* setting) is copied into FeyHub. Chat messages that were already added to the stash stay marked as added. After that, **disable the separate Fey Party module**, otherwise you'll get duplicate buttons. The GM is shown a reminder while both modules are enabled.
 
 ## Setup
 1. Copy or symlink this folder into `{UserData}/Data/modules/fey-manager`.
-2. Enable **Fey Manager – Party Hub** in your world.
-3. Log in as GM once. The module creates two journal entries in a *Fey Manager* folder:
-   - **Fey Manager Hub**: the shared data. Everyone can read it.
-   - **Fey Manager Hub (GM)**: holds entries the GM has hidden from players.
+2. Enable **FeyHub** in your world.
+3. Log in as GM once. The module creates two journal entries in a *FeyHub* folder (worlds set up before the rename keep their *Fey Manager* names):
+   - **FeyHub**: the shared data. Everyone can read it.
+   - **FeyHub (GM)**: holds entries the GM has hidden from players.
 
    Don't delete these journals. They store all of the hub's data.
 
 ## Who can edit
-Open the **lock** icon in the hub toolbar, or go to *Game Settings → Configure Settings → Fey Manager → Choose Editors*, and tick the players who may edit.
+Open the **lock** icon in the hub toolbar, or go to *Game Settings → Configure Settings → FeyHub → Choose Editors*, and tick the players who may edit.
 
 - **Editors** can add entries, edit any entry, and delete the entries **they created**.
 - **Everyone else** has read-only access.

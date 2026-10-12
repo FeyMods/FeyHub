@@ -1,6 +1,6 @@
 {
   "id": "fey-manager",
-  "title": "Fey Manager – Party Hub",
+  "title": "FeyHub",
   "description": "A shared hub for the GM and players to track quests, rumours, NPCs, short notes and the party stash. Open it from the Token controls.",
   "version": "0.2.0",
   "authors": [
@@ -25,5 +25,6 @@
       "path": "lang/en.json"
     }
   ],
-  "socket": true
+  "socket": true,
+  "url": "https://github.com/FeyMods/FeyHub"
 }

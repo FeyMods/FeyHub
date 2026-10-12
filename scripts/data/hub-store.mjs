@@ -47,7 +47,7 @@ export async function ensureJournals() {
   const needsSecret = !getSecretJournal();
   if ((needsHub || needsSecret) && !folder) {
     folder = await Folder.create({
-      name: "Fey Manager",
+      name: "FeyHub",
       type: "JournalEntry",
       flags: { [MODULE_ID]: { folder: true } }
     });
@@ -55,7 +55,7 @@ export async function ensureJournals() {
 
   if (needsHub) {
     const hub = await JournalEntry.create({
-      name: "Fey Manager Hub",
+      name: "FeyHub",
       folder: folder?.id,
       ownership: { default: L.OBSERVER },
       flags: { [MODULE_ID]: { role: "hub" } }
@@ -65,7 +65,7 @@ export async function ensureJournals() {
 
   if (needsSecret) {
     const secret = await JournalEntry.create({
-      name: "Fey Manager Hub (GM)",
+      name: "FeyHub (GM)",
       folder: folder?.id,
       ownership: { default: L.NONE },
       flags: { [MODULE_ID]: { role: "secret" } }

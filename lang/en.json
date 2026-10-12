@@ -151,8 +151,8 @@
       "AlreadyAdded": "That coin has already been added to the party stash.",
       "NothingToSplit": "Nothing to divide: pick at least one character and a currency with enough coin for everyone.",
       "NoSplitActors": "There are no player characters to divide the stash among.",
-      "LegacyActive": "The Party Stash is now part of Fey Manager. Disable the separate Fey Party module to avoid duplicate buttons.",
-      "Imported": "Your Party Stash from Fey Party has been imported into Fey Manager."
+      "LegacyActive": "The Party Stash is now part of FeyHub. Disable the separate Fey Party module to avoid duplicate buttons.",
+      "Imported": "Your Party Stash from Fey Party has been imported into FeyHub."
     },
     "Confirm": {
       "RemoveCurrencyTitle": "Remove Currency",
