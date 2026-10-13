@@ -548,6 +548,36 @@ details.fey-card .fey-card-body { border-top: 1px solid var(--fey-border); paddi
   color: var(--fey-muted);
 }
 
+.fey-stash .fp-resource-name {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.fey-stash .fp-resource-name .fp-name { flex: 1; min-width: 0; }
+.fey-stash .fp-item {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--fey-border);
+  border-radius: 6px;
+  background: var(--fey-bg);
+  overflow: hidden;
+  cursor: pointer;
+}
+.fey-stash .fp-item:hover { border-color: var(--fey-accent); }
+.fey-stash .fp-item img { width: 100%; height: 100%; object-fit: cover; border: none; }
+.fey-stash .fp-row-actions { display: inline-flex; gap: 2px; }
+
+.fey-stash .fp-resources.drag-over,
+.fey-stash .fp-resource.drag-over { border-color: var(--fey-accent); box-shadow: 0 0 0 2px var(--fey-accent); }
+.fey-stash .fp-hint {
+  margin: 0;
+  color: var(--fey-muted);
+  font-size: 11px;
+}
+
 .fey-stash .fp-label { font-weight: 600; }
 .fey-stash .fp-abbr {
   margin-left: 2px;

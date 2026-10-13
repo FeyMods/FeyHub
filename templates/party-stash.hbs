@@ -83,7 +83,14 @@
     <ol class="fp-list">
       {{#each resources}}
       <li class="fp-row fp-resource" data-id="{{id}}">
-        <input type="text" class="fp-name fp-inline" data-field="resourceName" value="{{name}}" maxlength="64">
+        <span class="fp-resource-name">
+          {{#if itemUuid}}
+          <button type="button" class="fp-item" data-action="openResourceItem" data-tooltip="FEYPARTY.OpenItem">
+            <img src="{{img}}" alt="">
+          </button>
+          {{/if}}
+          <input type="text" class="fp-name fp-inline" data-field="resourceName" value="{{name}}" maxlength="64">
+        </span>
         <span class="fp-stepper">
           <button type="button" class="fp-step" data-action="adjustResource" data-delta="-1"
                   data-tooltip="{{localize "FEYPARTY.StepHint"}}"><i class="fa-solid fa-minus"></i></button>
@@ -91,10 +98,16 @@
           <button type="button" class="fp-step" data-action="adjustResource" data-delta="1"
                   data-tooltip="{{localize "FEYPARTY.StepHint"}}"><i class="fa-solid fa-plus"></i></button>
         </span>
-        {{#if @root.canManage}}
-        <button type="button" class="fey-icon-btn danger" data-action="removeResource"
-                data-tooltip="FEYPARTY.RemoveResource"><i class="fa-solid fa-trash"></i></button>
-        {{/if}}
+        <span class="fp-row-actions">
+          {{#if itemUuid}}
+          <button type="button" class="fey-icon-btn" data-action="unlinkResource"
+                  data-tooltip="FEYPARTY.UnlinkItem"><i class="fa-solid fa-link-slash"></i></button>
+          {{/if}}
+          {{#if @root.canManage}}
+          <button type="button" class="fey-icon-btn danger" data-action="removeResource"
+                  data-tooltip="FEYPARTY.RemoveResource"><i class="fa-solid fa-trash"></i></button>
+          {{/if}}
+        </span>
         <input type="text" class="fp-notes fp-inline" data-field="resourceNotes" value="{{notes}}" maxlength="500"
                placeholder="{{localize "FEYPARTY.Notes"}}">
       </li>
@@ -103,6 +116,7 @@
     {{else}}
     <p class="fp-empty"><i class="fa-solid fa-box-open"></i> {{localize "FEYPARTY.NoResources"}}</p>
     {{/if}}
+    <p class="fp-hint"><i class="fa-solid fa-hand-pointer"></i> {{localize "FEYPARTY.DropItemHint"}}</p>
 
     <div class="fp-form fp-add">
       <input type="text" data-draft="resourceName" maxlength="64" placeholder="{{localize "FEYPARTY.ResourceName"}}">

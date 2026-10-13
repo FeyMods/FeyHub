@@ -143,6 +143,20 @@ async function onRemoveResource(event, target) {
   if (confirmed) dispatch("resourceRemove", { id });
 }
 
+async function onOpenResourceItem(event, target) {
+  const resource = getState().resources.find(r => r.id === rowId(target));
+  const item = resource?.itemUuid ? await fromUuid(resource.itemUuid) : null;
+  if (!item) {
+    ui.notifications.warn("FEYPARTY.Notify.ItemMissing", { localize: true });
+    return;
+  }
+  item.sheet.render(true);
+}
+
+function onUnlinkResource(event, target) {
+  dispatch("resourceUnlink", { id: rowId(target) });
+}
+
 async function onClearLog() {
   const confirmed = await DialogV2.confirm({
     window: { title: "FEYPARTY.Confirm.ClearLogTitle" },
@@ -160,6 +174,8 @@ export const STASH_ACTIONS = {
   adjustResource: onAdjustResource,
   addResource: onAddResource,
   removeResource: onRemoveResource,
+  openResourceItem: onOpenResourceItem,
+  unlinkResource: onUnlinkResource,
   clearLog: onClearLog
 };
 
@@ -190,6 +206,40 @@ function onKeyDown(event) {
   button.click();
 }
 
+/** The drop target under a drag: a resource row if over one, otherwise the resources section. */
+function dropTarget(event) {
+  const section = event.target.closest?.(".fey-stash .fp-resources");
+  return section && (event.target.closest(".fp-resource") ?? section);
+}
+
+function clearDragOver(element) {
+  element.querySelectorAll(".fey-stash .drag-over").forEach(el => el.classList.remove("drag-over"));
+}
+
+function onDragOver(event) {
+  const target = dropTarget(event);
+  if (!target) return;
+  event.preventDefault();
+  if (target.classList.contains("drag-over")) return;
+  clearDragOver(event.currentTarget);
+  target.classList.add("drag-over");
+}
+
+function onDragLeave(event) {
+  if (!event.currentTarget.contains(event.relatedTarget)) clearDragOver(event.currentTarget);
+}
+
+/** Items dropped on the resources create or link resources. */
+function onDrop(event) {
+  const target = dropTarget(event);
+  clearDragOver(event.currentTarget);
+  if (!target) return;
+  const data = foundry.applications.ux.TextEditor.implementation.getDragEventData(event);
+  if (data?.type !== "Item" || !data.uuid) return;
+  event.preventDefault();
+  dispatch("resourceDropItem", { itemUuid: data.uuid, id: target.matches(".fp-resource") ? target.dataset.id : undefined });
+}
+
 /**
  * Attach the stash's delegated listeners to an app's root element. Call once, from _onFirstRender.
  * The activity log's open state is kept on `app.stashLogOpen`.
@@ -198,6 +248,9 @@ export function attachStashListeners(app) {
   const element = app.element;
   element.addEventListener("change", onFieldChange);
   element.addEventListener("keydown", onKeyDown);
+  element.addEventListener("dragover", onDragOver);
+  element.addEventListener("dragleave", onDragLeave);
+  element.addEventListener("drop", onDrop);
   element.addEventListener("toggle", event => {
     if (event.target.matches?.("details.fp-log")) app.stashLogOpen = event.target.open;
   }, true);

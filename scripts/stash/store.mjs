@@ -229,6 +229,47 @@ const OPERATIONS = {
     }
   },
 
+  /**
+   * An Item dropped on the resources. Dropped on a row, it links that resource to the item;
+   * otherwise it adds the item's quantity to the resource already linked to it, or creates one.
+   */
+  resourceDropItem: {
+    async fn(state, { itemUuid, id }) {
+      const item = typeof itemUuid === "string" ? await fromUuid(itemUuid) : null;
+      if (!(item instanceof Item)) throw new Rejection("NoItem");
+
+      if (id) {
+        const r = state.resources.find(r => r.id === id);
+        if (!r || r.itemUuid === item.uuid) return false;
+        r.itemUuid = item.uuid;
+        r.img = item.img;
+        return fmt("LinkResource", { name: r.name, item: item.name });
+      }
+
+      const quantity = Math.max(1, toInt(item.system?.quantity ?? 1));
+      const existing = state.resources.find(r => r.itemUuid === item.uuid);
+      if (existing) {
+        const before = existing.quantity;
+        existing.quantity += quantity;
+        existing.img = item.img;
+        return fmt("SetResource", { name: existing.name, quantity: existing.quantity, before });
+      }
+      const name = clean(item.name) || item.uuid;
+      state.resources.push({ id: foundry.utils.randomID(), name, quantity, notes: "", itemUuid: item.uuid, img: item.img });
+      return fmt("AddResource", { name, quantity });
+    }
+  },
+
+  resourceUnlink: {
+    fn(state, { id }) {
+      const r = state.resources.find(r => r.id === id);
+      if (!r?.itemUuid) return false;
+      delete r.itemUuid;
+      delete r.img;
+      return fmt("UnlinkResource", { name: r.name });
+    }
+  },
+
   resourceRemove: {
     manage: true,
     fn(state, { id }) {
