@@ -270,6 +270,40 @@ const OPERATIONS = {
     }
   },
 
+  /**
+   * Move some of a linked resource onto a character as a copy of its item, stacking onto
+   * the copy the character already holds when the item tracks a quantity.
+   */
+  resourceGive: {
+    async fn(state, { id, actorUuid, quantity }, user) {
+      const r = state.resources.find(r => r.id === id);
+      if (!r?.itemUuid) throw new Rejection("NoResource");
+      const actor = typeof actorUuid === "string" ? fromUuidSync(actorUuid) : null;
+      if (!(actor instanceof Actor)) throw new Rejection("NoActor");
+      if (!actor.testUserPermission(user, "OWNER")) throw new Rejection("NotOwner", { name: actor.name });
+      quantity = toInt(quantity);
+      if (quantity <= 0) throw new Rejection("InvalidAmount");
+      if (quantity > r.quantity) throw new Rejection("InsufficientResource", { quantity: r.quantity, name: r.name });
+      const item = await fromUuid(r.itemUuid);
+      if (!(item instanceof Item)) throw new Rejection("ItemMissing");
+
+      const stacks = Number.isFinite(Number(item.system?.quantity));
+      const held = stacks && actor.items.find(i => i.flags?.[MODULE_ID]?.stashItem === item.uuid
+        || i._stats?.compendiumSource === item.uuid);
+      if (held) await held.update({ "system.quantity": toInt(held.system.quantity) + quantity });
+      else {
+        const data = game.items.fromCompendium(item, { keepId: false });
+        foundry.utils.setProperty(data, `flags.${MODULE_ID}.stashItem`, item.uuid);
+        if (stacks) data.system.quantity = quantity;
+        if (data.system && "container" in data.system) data.system.container = null;
+        // Without a quantity field, each unit is its own item.
+        await actor.createEmbeddedDocuments("Item", Array.from({ length: stacks ? 1 : quantity }, () => data));
+      }
+      r.quantity -= quantity;
+      return fmt("GiveResource", { quantity, name: r.name, actor: actor.name });
+    }
+  },
+
   resourceRemove: {
     manage: true,
     fn(state, { id }) {

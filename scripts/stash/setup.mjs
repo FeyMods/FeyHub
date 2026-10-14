@@ -2,6 +2,7 @@ import { MODULE_ID, LEGACY_ID, DEFAULT_STATE } from "./constants.mjs";
 import { registerSocket } from "./store.mjs";
 import { registerSheetIntegration } from "./purse.mjs";
 import { registerChatIntegration } from "./chat.mjs";
+import { registerActorDrop } from "./stash-ui.mjs";
 import { readWorldSetting } from "../data/migrate.mjs";
 
 /**
@@ -55,6 +56,7 @@ export function registerStash({ refresh, toggle }) {
 
   registerSheetIntegration();
   registerChatIntegration();
+  registerActorDrop();
 }
 
 /** Ready-time setup: the GM relay socket and a one-time import of Fey Party's data. */

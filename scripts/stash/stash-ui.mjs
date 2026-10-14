@@ -235,9 +235,71 @@ function onDrop(event) {
   clearDragOver(event.currentTarget);
   if (!target) return;
   const data = foundry.applications.ux.TextEditor.implementation.getDragEventData(event);
-  if (data?.type !== "Item" || !data.uuid) return;
+  if (data?.type !== "Item" || !data.uuid || data.feyStashResource) return;
   event.preventDefault();
   dispatch("resourceDropItem", { itemUuid: data.uuid, id: target.matches(".fp-resource") ? target.dataset.id : undefined });
+}
+
+/** A linked resource's item icon drags as that Item, tagged so actor sheets take it from the stash. */
+function onDragStart(event) {
+  const handle = event.target.closest?.(".fey-stash .fp-item");
+  if (!handle) return;
+  const resource = getState().resources.find(r => r.id === rowId(handle));
+  if (!resource?.itemUuid) return event.preventDefault();
+  event.dataTransfer.setData("text/plain", JSON.stringify({
+    type: "Item", uuid: resource.itemUuid, feyStashResource: resource.id
+  }));
+}
+
+/** Ask how many of a resource to give, then send the request. */
+async function giveResource(actor, resourceId) {
+  const resource = getState().resources.find(r => r.id === resourceId);
+  if (!resource?.itemUuid) {
+    ui.notifications.warn("FEYPARTY.Notify.NoResource", { localize: true });
+    return;
+  }
+  if (!actor.isOwner) {
+    ui.notifications.warn(game.i18n.format("FEYPARTY.Notify.NotOwner", { name: actor.name }));
+    return;
+  }
+  if (resource.quantity < 1) {
+    ui.notifications.warn(game.i18n.format("FEYPARTY.Notify.InsufficientResource", resource));
+    return;
+  }
+
+  let quantity = 1;
+  if (resource.quantity > 1) {
+    const esc = foundry.utils.escapeHTML;
+    quantity = await DialogV2.prompt({
+      window: {
+        title: game.i18n.format("FEYPARTY.Give.Title", { name: resource.name, actor: actor.name }),
+        icon: "fa-solid fa-hand-holding"
+      },
+      content: `<label>${esc(game.i18n.format("FEYPARTY.Give.Quantity", { quantity: resource.quantity }))}
+        <input type="number" name="quantity" value="1" min="1" max="${resource.quantity}" step="1" autofocus></label>`,
+      ok: {
+        label: "FEYPARTY.Give.Confirm",
+        icon: "fa-solid fa-hand-holding",
+        callback: (event, button) => Math.trunc(Number(button.form.elements.quantity.value))
+      },
+      rejectClose: false
+    });
+    if (quantity == null) return;
+    if (!(quantity > 0) || quantity > resource.quantity) {
+      ui.notifications.warn(game.i18n.format("FEYPARTY.Notify.InsufficientResource", resource));
+      return;
+    }
+  }
+  dispatch("resourceGive", { id: resource.id, actorUuid: actor.uuid, quantity });
+}
+
+/** Stash items dropped on an actor sheet are given to that actor instead of copied by the sheet. */
+export function registerActorDrop() {
+  Hooks.on("dropActorSheetData", (actor, sheet, data) => {
+    if (!data?.feyStashResource) return;
+    giveResource(actor, data.feyStashResource);
+    return false;
+  });
 }
 
 /**
@@ -248,6 +310,7 @@ export function attachStashListeners(app) {
   const element = app.element;
   element.addEventListener("change", onFieldChange);
   element.addEventListener("keydown", onKeyDown);
+  element.addEventListener("dragstart", onDragStart);
   element.addEventListener("dragover", onDragOver);
   element.addEventListener("dragleave", onDragLeave);
   element.addEventListener("drop", onDrop);

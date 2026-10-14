@@ -566,7 +566,7 @@ details.fey-card .fey-card-body { border-top: 1px solid var(--fey-border); paddi
   overflow: hidden;
   cursor: pointer;
 }
-.fey-stash .fp-item:hover { border-color: var(--fey-accent); }
+.fey-stash .fp-item:hover { border-color: var(--fey-accent); cursor: grab; }
 .fey-stash .fp-item img { width: 100%; height: 100%; object-fit: cover; border: none; }
 .fey-stash .fp-row-actions { display: inline-flex; gap: 2px; }
 
