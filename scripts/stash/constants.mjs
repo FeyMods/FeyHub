@@ -1,4 +1,5 @@
 import { MODULE_ID, PREVIOUS_ID } from "../data/hub-store.mjs";
+import { defaultCurrencies } from "./systems.mjs";
 
 export { MODULE_ID };
 export const SOCKET = `module.${MODULE_ID}`;
@@ -7,17 +8,10 @@ export const LOG_LIMIT = 100;
 /** The standalone module the Party Stash came from; its world data is imported once. */
 export const LEGACY_ID = "fey-party";
 
-export const DEFAULT_STATE = {
-  currencies: [
-    { id: "pp", label: "Platinum", abbr: "pp", amount: 0 },
-    { id: "gp", label: "Gold", abbr: "gp", amount: 0 },
-    { id: "ep", label: "Electrum", abbr: "ep", amount: 0 },
-    { id: "sp", label: "Silver", abbr: "sp", amount: 0 },
-    { id: "cp", label: "Copper", abbr: "cp", amount: 0 }
-  ],
-  resources: [],
-  log: []
-};
+/** A new, empty stash holding the coins of the world's game system. */
+export function defaultState() {
+  return { currencies: defaultCurrencies(), resources: [], log: [] };
+}
 
 /**
  * Who added a coin chat message to the stash, if anyone. Messages added before the stash

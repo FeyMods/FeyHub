@@ -1,4 +1,4 @@
-import { MODULE_ID, LEGACY_ID, DEFAULT_STATE } from "./constants.mjs";
+import { MODULE_ID, LEGACY_ID, defaultState } from "./constants.mjs";
 import { registerSocket } from "./store.mjs";
 import { registerSheetIntegration } from "./purse.mjs";
 import { registerChatIntegration } from "./chat.mjs";
@@ -16,7 +16,7 @@ export function registerStash({ refresh, toggle }) {
     scope: "world",
     config: false,
     type: Object,
-    default: DEFAULT_STATE,
+    default: defaultState(),
     onChange: () => refresh()
   });
 

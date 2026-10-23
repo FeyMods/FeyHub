@@ -1,5 +1,6 @@
-import { MODULE_ID, SOCKET, LOG_LIMIT, DEFAULT_STATE, depositedFlag } from "./constants.mjs";
+import { MODULE_ID, SOCKET, LOG_LIMIT, defaultState, depositedFlag } from "./constants.mjs";
 import { getPurse, purseKey } from "./purse.mjs";
+import { adjustPurse } from "./systems.mjs";
 import { messageText, parseCoins } from "./coins.mjs";
 
 /**
@@ -13,7 +14,7 @@ import { messageText, parseCoins } from "./coins.mjs";
 export function getState() {
   const stored = game.settings.get(MODULE_ID, "stash") ?? {};
   return foundry.utils.deepClone({
-    currencies: Array.isArray(stored.currencies) ? stored.currencies : DEFAULT_STATE.currencies,
+    currencies: Array.isArray(stored.currencies) ? stored.currencies : defaultState().currencies,
     resources: Array.isArray(stored.resources) ? stored.resources : [],
     log: Array.isArray(stored.log) ? stored.log : []
   });
@@ -319,15 +320,15 @@ const OPERATIONS = {
     async fn(state, { actorUuid, amounts, note }, user) {
       const { actor, moves } = resolveTransfer(state, actorUuid, amounts, user);
       const purse = getPurse(actor);
-      const update = {};
+      const deltas = {};
       for (const { currency, key, amount } of moves) {
         const available = toInt(purse[key]);
         if (amount > available) throw new Rejection("InsufficientPurse", {
           name: actor.name, amount: available, currency: currency.label
         });
-        update[`system.currency.${key}`] = available - amount;
+        deltas[key] = -amount;
       }
-      await actor.update(update);
+      await adjustPurse(actor, deltas);
       for (const { currency, amount } of moves) currency.amount += amount;
       return withNote(fmt("DepositFrom", { amounts: describe(moves), name: actor.name }), clean(note, 120));
     }
@@ -337,15 +338,14 @@ const OPERATIONS = {
   actorWithdraw: {
     async fn(state, { actorUuid, amounts, note }, user) {
       const { actor, moves } = resolveTransfer(state, actorUuid, amounts, user);
-      const purse = getPurse(actor);
-      const update = {};
+      const deltas = {};
       for (const { currency, key, amount } of moves) {
         if (amount > currency.amount) throw new Rejection("Insufficient", {
           amount: currency.amount, currency: currency.label
         });
-        update[`system.currency.${key}`] = toInt(purse[key]) + amount;
+        deltas[key] = amount;
       }
-      await actor.update(update);
+      await adjustPurse(actor, deltas);
       for (const { currency, amount } of moves) currency.amount -= amount;
       return withNote(fmt("WithdrawTo", { amounts: describe(moves), name: actor.name }), clean(note, 120));
     }
@@ -368,13 +368,9 @@ const OPERATIONS = {
       }
       if (!moves.length) throw new Rejection("NothingToSplit");
       await Promise.all(actors.map(actor => {
-        const purse = getPurse(actor);
-        const update = {};
-        for (const { currency, amount } of moves) {
-          const key = purseKey(actor, currency);
-          update[`system.currency.${key}`] = toInt(purse[key]) + amount;
-        }
-        return actor.update(update);
+        const deltas = {};
+        for (const { currency, amount } of moves) deltas[purseKey(actor, currency)] = amount;
+        return adjustPurse(actor, deltas);
       }));
       for (const { currency, amount } of moves) currency.amount -= amount * actors.length;
       return fmt("Split", { amounts: describe(moves), names: actors.map(a => a.name).join(", ") });

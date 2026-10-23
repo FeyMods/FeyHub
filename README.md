@@ -6,7 +6,7 @@ A Foundry VTT **V13 and V14** module that gives the GM and players one shared hu
 - **Rumours**: what was heard, who or where it came from (free text and/or a linked NPC entry), where it was heard, and whether it's confirmed.
 - **NPCs**: name, short description and disposition. You can optionally link an NPC to an Actor so players who have permission can open its sheet.
 - **Notes**: short free-form notes.
-- **Stash**: the Party Stash. It has shared coin and custom currencies, party resources, transfers to and from character purses (dnd5e), dividing coin between characters, "Add to Party Stash" buttons on chat messages that contain only coin, and an activity log.
+- **Stash**: the Party Stash. It has shared coin and custom currencies, party resources, transfers to and from character purses, dividing coin between characters (Dungeons & Dragons 5e and Pathfinder 2e, detected automatically), "Add to Party Stash" buttons on chat messages that contain only coin, and an activity log.
 
 ## Opening the hub
 Click the **book** icon (<i>fa-book-atlas</i>) in the **Token controls** on the left-hand toolbar. Click it again to close the hub.

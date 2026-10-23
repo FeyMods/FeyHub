@@ -1,18 +1,15 @@
 import { getState, dispatch, canManage } from "./store.mjs";
+import { getPurse, partyMembers } from "./systems.mjs";
+
+export { getPurse };
 
 /**
- * Character purse integration (dnd5e: coin lives at actor.system.currency.{pp,gp,ep,sp,cp}).
+ * Character purse integration, for whichever game system the world runs (see systems.mjs).
  * Stash currencies are matched to purse keys by id, then by abbreviation, so a custom stash
  * currency with no purse equivalent simply can't be moved to or from a character.
  */
 
 const { DialogV2 } = foundry.applications.api;
-
-/** The actor's coin record, or null if it has none. */
-export function getPurse(actor) {
-  const purse = actor?.system?.currency;
-  return purse && typeof purse === "object" ? purse : null;
-}
 
 /** The purse key matching a stash currency, or null. */
 export function purseKey(actor, currency) {
@@ -134,13 +131,17 @@ export async function openSplitDialog() {
     return;
   }
 
+  // Tick the party's members when the system has a party, otherwise every player character.
+  const party = partyMembers();
+  const ticked = actor => (party ? party.has(actor) : actor.hasPlayerOwner);
+
   const esc = foundry.utils.escapeHTML;
   const i18n = key => game.i18n.localize(`FEYPARTY.Split.${key}`);
   const content = `
     <fieldset class="fp-split-actors">
       <legend>${i18n("Characters")}</legend>
       ${actors.map(a => `
-        <label><input type="checkbox" name="actor" value="${esc(a.uuid)}" ${a.hasPlayerOwner ? "checked" : ""}> ${esc(a.name)}</label>`).join("")}
+        <label><input type="checkbox" name="actor" value="${esc(a.uuid)}" ${ticked(a) ? "checked" : ""}> ${esc(a.name)}</label>`).join("")}
     </fieldset>
     <table class="fp-transfer-table">
       <thead><tr>
@@ -226,5 +227,17 @@ export function registerSheetIntegration() {
     if (!actor?.isOwner || !getPurse(actor)) return;
     app.options.actions.feyManagerStashTransfer ??= function() { openTransferDialog(this.document); };
     controls.push({ icon: "fa-solid fa-sack-dollar", label: "FEYPARTY.Transfer.Button", action: "feyManagerStashTransfer" });
+  });
+
+  // Sheets still built on the older Application class, such as pf2e's.
+  Hooks.on("getActorSheetHeaderButtons", (app, buttons) => {
+    const actor = app.document ?? app.actor;
+    if (!actor?.isOwner || !getPurse(actor)) return;
+    buttons.unshift({
+      label: game.i18n.localize("FEYPARTY.Transfer.Button"),
+      class: "fey-stash-transfer",
+      icon: "fa-solid fa-sack-dollar",
+      onclick: () => openTransferDialog(actor)
+    });
   });
 }
