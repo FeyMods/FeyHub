@@ -1,7 +1,7 @@
 import {
   MODULE_ID, QUEST_STATUSES, RUMOUR_STATUSES,
   getHubJournal, getEntries, getEntry, canEdit, canDelete,
-  createEntry, updateEntry, deleteEntry, setHidden
+  createEntry, updateEntry, deleteEntry, setHidden, objectiveList, objectiveRecord
 } from "../data/hub-store.mjs";
 import { FeyEntryEditor } from "./entry-editor.mjs";
 import { FeyHubPermissionsApp } from "./permissions-app.mjs";
@@ -142,7 +142,7 @@ export class FeyHubApp extends HandlebarsApplicationMixin(ApplicationV2) {
       .filter(q => (this.questFilter === "all") || (q.status === this.questFilter))
       .sort((a, b) => (QUEST_STATUSES.indexOf(a.status) - QUEST_STATUSES.indexOf(b.status)) || byUpdated(a, b))
       .map(q => {
-        const objectives = q.objectives ?? [];
+        const objectives = objectiveList(q.objectives);
         const giver = npcRef(q.giverNpcId);
         return {
           ...decorate("quests", q),
@@ -350,9 +350,13 @@ export class FeyHubApp extends HandlebarsApplicationMixin(ApplicationV2) {
       event.preventDefault();
       return;
     }
-    const objectives = (found.entry.objectives ?? []).map(o =>
-      o.id === target.dataset.objective ? { ...o, done: target.checked } : o
-    );
+    const objectiveId = target.dataset.objective;
+    const stored = found.entry.objectives;
+    // Change only this objective's key, so other users' ticks on the same quest aren't lost.
+    // A quest still holding an old objectives array is rewritten as a record instead.
+    const objectives = Array.isArray(stored)
+      ? objectiveRecord(objectiveList(stored).map(o => (o.id === objectiveId ? { ...o, done: target.checked } : o)))
+      : { [objectiveId]: { done: target.checked } };
     await updateEntry("quests", id, { objectives });
   }
 
