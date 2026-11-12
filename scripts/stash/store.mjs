@@ -351,10 +351,14 @@ const OPERATIONS = {
     }
   },
 
-  /** Divide coin evenly among characters' purses; whatever doesn't divide evenly stays in the stash. */
+  /**
+   * Divide coin evenly among characters' purses; whatever doesn't divide evenly stays in the stash.
+   * Characters are paid one at a time, and the stash only gives up the shares that were paid,
+   * so a purse that can't be updated keeps its share in the stash instead of creating coin.
+   */
   splitStash: {
     manage: true,
-    async fn(state, { actorUuids, currencyIds }) {
+    async fn(state, { actorUuids, currencyIds }, user) {
       const actors = [...new Set(Array.isArray(actorUuids) ? actorUuids : [])]
         .map(uuid => (typeof uuid === "string" ? fromUuidSync(uuid) : null))
         .filter(a => a instanceof Actor && getPurse(a));
@@ -367,13 +371,24 @@ const OPERATIONS = {
         if (amount > 0) moves.push({ currency, amount });
       }
       if (!moves.length) throw new Rejection("NothingToSplit");
-      await Promise.all(actors.map(actor => {
+      const paid = [];
+      const failed = [];
+      for (const actor of actors) {
         const deltas = {};
         for (const { currency, amount } of moves) deltas[purseKey(actor, currency)] = amount;
-        return adjustPurse(actor, deltas);
-      }));
-      for (const { currency, amount } of moves) currency.amount -= amount * actors.length;
-      return fmt("Split", { amounts: describe(moves), names: actors.map(a => a.name).join(", ") });
+        try {
+          await adjustPurse(actor, deltas);
+          paid.push(actor);
+        } catch (err) {
+          console.error(`${MODULE_ID} | Could not pay ${actor.name} their share of the stash`, err);
+          failed.push(actor);
+        }
+      }
+      const names = list => list.map(a => a.name).join(", ");
+      if (!paid.length) throw new Rejection("SplitFailed", { names: names(failed) });
+      if (failed.length) notify(user.id, "FEYPARTY.Notify.SplitFailed", { names: names(failed) });
+      for (const { currency, amount } of moves) currency.amount -= amount * paid.length;
+      return fmt("Split", { amounts: describe(moves), names: names(paid) });
     }
   },
 
