@@ -1,4 +1,4 @@
-import { MODULE_ID, ensureJournals, isHubJournal } from "./data/hub-store.mjs";
+import { MODULE_ID, ensureJournals, isHubJournal, migrateObjectives } from "./data/hub-store.mjs";
 import { FeyHubApp } from "./apps/hub-app.mjs";
 import { FeyHubPermissionsApp } from "./apps/permissions-app.mjs";
 import { FeyStashApp } from "./stash/stash-app.mjs";
@@ -67,6 +67,7 @@ Hooks.once("ready", async () => {
   await migrateFromPreviousId();
   await readyStash();
   await ensureJournals();
+  await migrateObjectives();
   FeyHubApp.refresh();
 });
 

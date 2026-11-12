@@ -135,9 +135,17 @@ function denied() {
 }
 
 /**
- * An update that removes one key from a flag object. V14 deprecates the "-=" key in
- * favour of its ForcedDeletion operator (`_del`); V13 only understands "-=".
+ * Mark `key` of `target` for deletion when `target` is merged into a document update.
+ * V14 deprecates the "-=" key in favour of its ForcedDeletion operator (`_del`); V13 only
+ * understands "-=".
  */
+function markDeleted(target, key) {
+  if (globalThis._del) target[key] = globalThis._del;
+  else target[`-=${key}`] = null;
+  return target;
+}
+
+/** An update that removes one entry from a type's flag object. */
 function deleteFlagKey(type, id) {
   if (globalThis._del) return { [`flags.${MODULE_ID}.${type}.${id}`]: globalThis._del };
   return { [`flags.${MODULE_ID}.${type}.-=${id}`]: null };
@@ -171,8 +179,12 @@ export async function createEntry(type, data, { hidden = false } = {}) {
 /**
  * Update an entry. Passing `hidden` (GM only) moves it between the shared and
  * secret journals.
+ *
+ * Changes are merged into the stored entry, so nested objects such as a quest's
+ * objectives only need the keys that changed. Objective ids listed in
+ * `removeObjectives` are deleted.
  */
-export async function updateEntry(type, id, changes, { hidden } = {}) {
+export async function updateEntry(type, id, changes, { hidden, removeObjectives = [] } = {}) {
   if (!canEdit()) return denied();
   const found = getEntry(type, id);
   if (!found) return null;
@@ -180,7 +192,17 @@ export async function updateEntry(type, id, changes, { hidden } = {}) {
 
   const move = game.user.isGM && (hidden !== undefined) && (hidden !== found.hidden);
   if (!move) {
-    await found.journal.update({ [`flags.${MODULE_ID}.${type}.${id}`]: { ...changes, ...stamp } });
+    const update = { ...changes, ...stamp };
+    // Deletion keys only apply when merging into an existing objectives record; an old
+    // objectives array is replaced outright by the new record.
+    const stored = found.entry.objectives;
+    if (removeObjectives.length && stored && !Array.isArray(stored)) {
+      update.objectives = { ...update.objectives };
+      for (const objectiveId of removeObjectives) {
+        if (objectiveId in stored) markDeleted(update.objectives, objectiveId);
+      }
+    }
+    await found.journal.update({ [`flags.${MODULE_ID}.${type}.${id}`]: update });
     return { ...found.entry, ...changes, ...stamp };
   }
 
@@ -202,4 +224,46 @@ export async function deleteEntry(type, id) {
 
 export function setHidden(type, id, hidden) {
   return updateEntry(type, id, {}, { hidden });
+}
+
+/* -------------------------------------------- */
+/*  Quest objectives                            */
+/* -------------------------------------------- */
+
+/*
+ * A quest's objectives are stored as a record keyed by objective id, each with a `sort`
+ * index, so two users ticking different objectives at once each change only their own key.
+ * Quests saved by earlier versions hold a plain array, which these helpers also accept.
+ */
+
+/** A quest's objectives as an ordered array, whichever way they are stored. */
+export function objectiveList(objectives) {
+  if (!objectives || (typeof objectives !== "object")) return [];
+  const list = Array.isArray(objectives)
+    ? objectives.map((o, sort) => ({ ...o, sort }))
+    : Object.values(objectives).map((o, i) => ({ ...o, sort: Number.isFinite(o?.sort) ? o.sort : i }));
+  return list.filter(o => o?.id).sort((a, b) => a.sort - b.sort);
+}
+
+/** An ordered array of objectives as the stored record, numbering `sort` in array order. */
+export function objectiveRecord(list) {
+  return Object.fromEntries(list.map((o, sort) => [o.id, { id: o.id, text: o.text ?? "", done: !!o.done, sort }]));
+}
+
+/**
+ * Convert objectives arrays saved by earlier versions into records. Only the active GM
+ * does this; until then the helpers above read either shape.
+ */
+export async function migrateObjectives() {
+  if (!game.users.activeGM?.isSelf) return;
+  for (const journal of [getHubJournal(), getSecretJournal()]) {
+    const quests = journal?.getFlag(MODULE_ID, "quests") ?? {};
+    const update = {};
+    for (const [id, quest] of Object.entries(quests)) {
+      if (Array.isArray(quest?.objectives)) {
+        update[`flags.${MODULE_ID}.quests.${id}.objectives`] = objectiveRecord(objectiveList(quest.objectives));
+      }
+    }
+    if (Object.keys(update).length) await journal.update(update);
+  }
 }

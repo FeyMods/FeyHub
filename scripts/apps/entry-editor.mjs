@@ -1,6 +1,6 @@
 import {
   MODULE_ID, QUEST_STATUSES, RUMOUR_STATUSES, NPC_DISPOSITIONS,
-  getEntries, getEntry, createEntry, updateEntry
+  getEntries, getEntry, createEntry, updateEntry, objectiveList, objectiveRecord
 } from "../data/hub-store.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -85,7 +85,7 @@ export class FeyEntryEditor extends HandlebarsApplicationMixin(ApplicationV2) {
       isRumour: this.type === "rumours",
       isNPC: this.type === "npcs",
       isNote: this.type === "notes",
-      objectives: (entry.objectives ?? []).map(o => ({ ...o, key: o.id })),
+      objectives: objectiveList(entry.objectives).map(o => ({ ...o, key: o.id })),
       questStatuses: choices(QUEST_STATUSES, "FEYHUB.Quest.Status"),
       rumourStatuses: choices(RUMOUR_STATUSES, "FEYHUB.Rumour.Status"),
       dispositions: choices(NPC_DISPOSITIONS, "FEYHUB.NPC.Disposition"),
@@ -163,10 +163,15 @@ export class FeyEntryEditor extends HandlebarsApplicationMixin(ApplicationV2) {
       if (typeof v === "string") data[k] = v.trim() || null;
     }
 
+    // Objectives are saved as a record in the order shown; ones removed in the form are deleted.
+    let removeObjectives = [];
     if (this.type === "quests") {
-      data.objectives = Object.values(data.objectives ?? {})
+      const list = Object.values(data.objectives ?? {})
         .filter(o => o?.text?.trim())
         .map(o => ({ id: o.id || foundry.utils.randomID(), text: o.text.trim(), done: !!o.done }));
+      data.objectives = objectiveRecord(list);
+      const before = this.entryId ? objectiveList(getEntry(this.type, this.entryId)?.entry.objectives) : [];
+      removeObjectives = before.map(o => o.id).filter(id => !(id in data.objectives));
     }
 
     // Keep the portrait in step with the linked actor.
@@ -174,7 +179,7 @@ export class FeyEntryEditor extends HandlebarsApplicationMixin(ApplicationV2) {
       data.img = fromUuidSync(data.actorUuid)?.img ?? data.img;
     }
 
-    if (this.entryId) await updateEntry(this.type, this.entryId, data, { hidden });
+    if (this.entryId) await updateEntry(this.type, this.entryId, data, { hidden, removeObjectives });
     else await createEntry(this.type, data, { hidden: !!hidden });
   }
 }
