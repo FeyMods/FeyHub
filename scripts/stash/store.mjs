@@ -2,6 +2,9 @@ import { MODULE_ID, SOCKET, LOG_LIMIT, defaultState, depositedFlag } from "./con
 import { getPurse, purseKey } from "./purse.mjs";
 import { adjustPurse } from "./systems.mjs";
 import { messageText, parseCoins } from "./coins.mjs";
+import { getHubJournal, getEntry, updateEntry } from "../data/hub-store.mjs";
+import { rewardCoins, rewardItems } from "../data/rewards.mjs";
+import { announce } from "../data/announce.mjs";
 
 /**
  * Shared party state lives in a world setting. Only GMs may write world settings,
@@ -26,6 +29,19 @@ export function canManage(user = game.user) {
 }
 
 /**
+ * Whether a user may add or remove stash coin that doesn't come from or go to a character:
+ * the ± buttons, typed totals, stash-only deposits and withdrawals, and quest reward payouts.
+ */
+export function canAdjust(user = game.user) {
+  return user.isGM || game.settings.get(MODULE_ID, "playersAdjust");
+}
+
+/** Whether a user may add the coin written in a chat message to the stash. */
+export function canChatDeposit(user = game.user) {
+  return user.isGM || game.settings.get(MODULE_ID, "playersChatDeposit");
+}
+
+/**
  * Request a change to the shared state. GMs apply directly; players relay to the active GM.
  * @returns {boolean} Whether the request was sent.
  */
@@ -35,7 +51,7 @@ export function dispatch(type, payload = {}) {
     return true;
   }
   if (!game.users.activeGM) {
-    ui.notifications.warn("FEYPARTY.Notify.NoGM", { localize: true });
+    ui.notifications.warn("FEYHUB.Stash.Notify.NoGM", { localize: true });
     return false;
   }
   game.socket.emit(SOCKET, { type, payload, userId: game.user.id });
@@ -58,7 +74,7 @@ export function registerSocket() {
 class Rejection extends Error {
   constructor(key, data = {}) {
     super(key);
-    this.key = `FEYPARTY.Notify.${key}`;
+    this.key = `FEYHUB.Stash.Notify.${key}`;
     this.data = data;
   }
 }
@@ -83,6 +99,8 @@ async function apply(type, payload, userId) {
   if (!op || !user) return;
   if (op.gmOnly && !user.isGM) return;
   if (op.manage && !canManage(user)) return;
+  if (op.adjust && !canAdjust(user)) return notify(userId, "FEYHUB.Stash.Notify.NoAdjust");
+  if (op.chat && !canChatDeposit(user)) return notify(userId, "FEYHUB.Stash.Notify.NoChatDeposit");
 
   const state = getState();
   let message;
@@ -109,7 +127,7 @@ const toInt = value => {
   return Number.isFinite(n) ? n : 0;
 };
 const clean = (value, max = 64) => String(value ?? "").trim().slice(0, max);
-const fmt = (key, data) => game.i18n.format(`FEYPARTY.Log.${key}`, data);
+const fmt = (key, data) => game.i18n.format(`FEYHUB.Stash.Log.${key}`, data);
 const withNote = (text, note) => (note ? `${text} — ${note}` : text);
 
 /** Validate a character transfer request and pair each stash currency with its purse key. */
@@ -131,8 +149,36 @@ function resolveTransfer(state, actorUuid, amounts, user) {
 
 const describe = moves => moves.map(m => `${m.amount} ${m.currency.label}`).join(", ");
 
+/**
+ * Add some of an item to the resources: onto the resource already linked to it, or a new one.
+ * @param {object} state
+ * @param {{uuid: string, name: string, img?: string}} item  An Item, or a reward's record of one.
+ * @param {number} quantity
+ * @returns {{resource: object, before: number|null}}  The resource, and its quantity before (null if new).
+ */
+function stockItem(state, item, quantity) {
+  const existing = state.resources.find(r => r.itemUuid === item.uuid);
+  if (existing) {
+    const before = existing.quantity;
+    existing.quantity += quantity;
+    if (item.img) existing.img = item.img;
+    return { resource: existing, before };
+  }
+  const resource = {
+    id: foundry.utils.randomID(),
+    name: clean(item.name) || item.uuid,
+    quantity,
+    notes: "",
+    itemUuid: item.uuid,
+    img: item.img
+  };
+  state.resources.push(resource);
+  return { resource, before: null };
+}
+
 const OPERATIONS = {
   currencyAdjust: {
+    adjust: true,
     fn(state, { id, delta, note }) {
       const c = state.currencies.find(c => c.id === id);
       if (!c) return false;
@@ -146,6 +192,7 @@ const OPERATIONS = {
   },
 
   currencySet: {
+    adjust: true,
     fn(state, { id, value }) {
       const c = state.currencies.find(c => c.id === id);
       if (!c) return false;
@@ -248,16 +295,9 @@ const OPERATIONS = {
       }
 
       const quantity = Math.max(1, toInt(item.system?.quantity ?? 1));
-      const existing = state.resources.find(r => r.itemUuid === item.uuid);
-      if (existing) {
-        const before = existing.quantity;
-        existing.quantity += quantity;
-        existing.img = item.img;
-        return fmt("SetResource", { name: existing.name, quantity: existing.quantity, before });
-      }
-      const name = clean(item.name) || item.uuid;
-      state.resources.push({ id: foundry.utils.randomID(), name, quantity, notes: "", itemUuid: item.uuid, img: item.img });
-      return fmt("AddResource", { name, quantity });
+      const { resource, before } = stockItem(state, item, quantity);
+      if (before === null) return fmt("AddResource", { name: resource.name, quantity });
+      return fmt("SetResource", { name: resource.name, quantity: resource.quantity, before });
     }
   },
 
@@ -386,7 +426,7 @@ const OPERATIONS = {
       }
       const names = list => list.map(a => a.name).join(", ");
       if (!paid.length) throw new Rejection("SplitFailed", { names: names(failed) });
-      if (failed.length) notify(user.id, "FEYPARTY.Notify.SplitFailed", { names: names(failed) });
+      if (failed.length) notify(user.id, "FEYHUB.Stash.Notify.SplitFailed", { names: names(failed) });
       for (const { currency, amount } of moves) currency.amount -= amount * paid.length;
       return fmt("Split", { amounts: describe(moves), names: names(paid) });
     }
@@ -394,6 +434,7 @@ const OPERATIONS = {
 
   /** Add the coin written in a chat message, once per message. */
   chatDeposit: {
+    chat: true,
     async fn(state, { messageId }, user) {
       const message = game.messages.get(messageId);
       if (!message) return false;
@@ -404,6 +445,48 @@ const OPERATIONS = {
       await message.setFlag(MODULE_ID, "deposited", { user: user.name, time: Date.now() });
       for (const { currency, amount } of moves) currency.amount += amount;
       return fmt("DepositChat", { amounts: describe(moves) });
+    }
+  },
+
+  /**
+   * Pay a quest's rewards into the stash, once per quest: its coin onto the matching
+   * currencies and its items onto the resources. Any hub editor may ask for this.
+   */
+  questReward: {
+    adjust: true,
+    async fn(state, { questId }, user) {
+      if (!user.isGM && !getHubJournal()?.testUserPermission(user, "OWNER")) throw new Rejection("NotEditor");
+      const found = getEntry("quests", questId);
+      if (!found || (found.hidden && !user.isGM)) throw new Rejection("NoQuest");
+      const quest = found.entry;
+      if (quest.rewardsPaid) throw new Rejection("RewardsPaid", { name: quest.title });
+
+      const parts = [];
+      for (const { id, amount } of rewardCoins(quest)) {
+        const currency = state.currencies.find(c => c.id === id);
+        if (!currency) continue;
+        currency.amount += amount;
+        parts.push(`${amount} ${currency.label}`);
+      }
+      for (const reward of rewardItems(quest)) {
+        // Prefer the item's current name and image; a deleted item still pays out by its saved name.
+        const item = await fromUuid(reward.uuid).catch(() => null);
+        const source = item instanceof Item ? item : reward;
+        const { resource } = stockItem(state, { uuid: reward.uuid, name: source.name, img: source.img }, reward.quantity);
+        parts.push(`${reward.quantity} × ${resource.name}`);
+      }
+      if (!parts.length) throw new Rejection("NoRewards", { name: quest.title });
+
+      // Marked paid before the stash is saved: a failed save loses the payout rather than doubling it.
+      await updateEntry("quests", questId, { rewardsPaid: { user: user.name, time: Date.now() } });
+      const amounts = parts.join(", ");
+      if (!found.hidden) {
+        announce("fa-solid fa-sack-dollar", game.i18n.format("FEYHUB.Announce.Rewards", {
+          title: `<strong>${foundry.utils.escapeHTML(quest.title ?? "")}</strong>`,
+          amounts: foundry.utils.escapeHTML(amounts)
+        }));
+      }
+      return fmt("QuestReward", { name: quest.title, amounts });
     }
   },
 

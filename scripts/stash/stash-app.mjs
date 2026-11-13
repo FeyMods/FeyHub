@@ -1,5 +1,7 @@
 import { MODULE_ID } from "./constants.mjs";
 import { STASH_ACTIONS, prepareStashContext, attachStashListeners, syncStashDrafts } from "./stash-ui.mjs";
+import { getState } from "./store.mjs";
+import { getLastSeen, markSeen, unreadLog } from "../data/unread.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -15,7 +17,7 @@ export class FeyStashApp extends HandlebarsApplicationMixin(ApplicationV2) {
     classes: ["fey-hub", "fey-stash", "fey-stash-window"],
     tag: "div",
     window: {
-      title: "FEYPARTY.Title",
+      title: "FEYHUB.Stash.Title",
       icon: "fa-solid fa-sack-dollar",
       resizable: true
     },
@@ -58,6 +60,12 @@ export class FeyStashApp extends HandlebarsApplicationMixin(ApplicationV2) {
   _onFirstRender(context, options) {
     super._onFirstRender(context, options);
     attachStashListeners(this);
+  }
+
+  /** Showing the stash counts as seeing its activity, for the hub's unread count. */
+  async _onRender(context, options) {
+    await super._onRender(context, options);
+    if (unreadLog(getState().log, getLastSeen().stash).length) await markSeen("stash");
   }
 
   _syncPartState(partId, newElement, priorElement, state) {

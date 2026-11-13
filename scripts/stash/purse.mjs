@@ -50,7 +50,7 @@ export function transfer(actor, direction, amounts, note) {
     const deposit = direction === "deposit";
     const available = deposit ? Number(purse[key]) || 0 : currency.amount;
     if (amount > available) {
-      ui.notifications.warn(game.i18n.format(`FEYPARTY.Notify.${deposit ? "InsufficientPurse" : "Insufficient"}`, {
+      ui.notifications.warn(game.i18n.format(`FEYHUB.Stash.Notify.${deposit ? "InsufficientPurse" : "Insufficient"}`, {
         name: actor.name, amount: available, currency: currency.label
       }));
       return false;
@@ -58,7 +58,7 @@ export function transfer(actor, direction, amounts, note) {
     valid[id] = amount;
   }
   if (!Object.keys(valid).length) {
-    ui.notifications.warn("FEYPARTY.Notify.InvalidAmount", { localize: true });
+    ui.notifications.warn("FEYHUB.Stash.Notify.InvalidAmount", { localize: true });
     return false;
   }
   const type = direction === "deposit" ? "actorDeposit" : "actorWithdraw";
@@ -72,12 +72,12 @@ export async function openTransferDialog(actor) {
     .map(currency => ({ currency, key: purseKey(actor, currency) }))
     .filter(r => r.key);
   if (!purse || !rows.length) {
-    ui.notifications.warn("FEYPARTY.Notify.NoMatchingCurrency", { localize: true });
+    ui.notifications.warn("FEYHUB.Stash.Notify.NoMatchingCurrency", { localize: true });
     return;
   }
 
   const esc = foundry.utils.escapeHTML;
-  const i18n = key => game.i18n.localize(`FEYPARTY.Transfer.${key}`);
+  const i18n = key => game.i18n.localize(`FEYHUB.Stash.Transfer.${key}`);
   const content = `
     <table class="fp-transfer-table">
       <thead><tr>
@@ -92,7 +92,7 @@ export async function openTransferDialog(actor) {
         </tr>`).join("")}
       </tbody>
     </table>
-    <input type="text" name="note" maxlength="120" placeholder="${game.i18n.localize("FEYPARTY.Note")}">`;
+    <input type="text" name="note" maxlength="120" placeholder="${game.i18n.localize("FEYHUB.Stash.Note")}">`;
 
   const read = direction => (event, button) => {
     const { note, ...amounts } = new foundry.applications.ux.FormDataExtended(button.form).object;
@@ -100,14 +100,14 @@ export async function openTransferDialog(actor) {
   };
   const result = await DialogV2.wait({
     window: {
-      title: game.i18n.format("FEYPARTY.Transfer.Title", { name: actor.name }),
+      title: game.i18n.format("FEYHUB.Stash.Transfer.Title", { name: actor.name }),
       icon: "fa-solid fa-sack-dollar"
     },
     classes: ["fey-party-transfer"],
     content,
     buttons: [
-      { action: "deposit", label: "FEYPARTY.Transfer.Deposit", icon: "fa-solid fa-piggy-bank", default: true, callback: read("deposit") },
-      { action: "withdraw", label: "FEYPARTY.Transfer.Withdraw", icon: "fa-solid fa-hand-holding-dollar", callback: read("withdraw") }
+      { action: "deposit", label: "FEYHUB.Stash.Transfer.Deposit", icon: "fa-solid fa-piggy-bank", default: true, callback: read("deposit") },
+      { action: "withdraw", label: "FEYHUB.Stash.Transfer.Withdraw", icon: "fa-solid fa-hand-holding-dollar", callback: read("withdraw") }
     ],
     rejectClose: false
   });
@@ -127,7 +127,7 @@ export async function openSplitDialog() {
   const actors = splitActors();
   const currencies = getState().currencies.filter(c => c.amount > 0 && actors.some(a => purseKey(a, c)));
   if (!actors.length || !currencies.length) {
-    ui.notifications.warn(`FEYPARTY.Notify.${actors.length ? "NothingToSplit" : "NoSplitActors"}`, { localize: true });
+    ui.notifications.warn(`FEYHUB.Stash.Notify.${actors.length ? "NothingToSplit" : "NoSplitActors"}`, { localize: true });
     return;
   }
 
@@ -136,7 +136,7 @@ export async function openSplitDialog() {
   const ticked = actor => (party ? party.has(actor) : actor.hasPlayerOwner);
 
   const esc = foundry.utils.escapeHTML;
-  const i18n = key => game.i18n.localize(`FEYPARTY.Split.${key}`);
+  const i18n = key => game.i18n.localize(`FEYHUB.Stash.Split.${key}`);
   const content = `
     <fieldset class="fp-split-actors">
       <legend>${i18n("Characters")}</legend>
@@ -175,13 +175,13 @@ export async function openSplitDialog() {
   };
 
   const result = await DialogV2.wait({
-    window: { title: "FEYPARTY.Split.Title", icon: "fa-solid fa-people-arrows" },
+    window: { title: "FEYHUB.Stash.Split.Title", icon: "fa-solid fa-people-arrows" },
     classes: ["fey-party-transfer"],
     content,
     render: preview,
     buttons: [{
       action: "split",
-      label: "FEYPARTY.Split.Confirm",
+      label: "FEYHUB.Stash.Split.Confirm",
       icon: "fa-solid fa-people-arrows",
       default: true,
       callback: (event, button) => {
@@ -193,7 +193,7 @@ export async function openSplitDialog() {
   });
   if (!result) return;
   if (!result.actorUuids.length || !result.currencyIds.length) {
-    ui.notifications.warn("FEYPARTY.Notify.NothingToSplit", { localize: true });
+    ui.notifications.warn("FEYHUB.Stash.Notify.NothingToSplit", { localize: true });
     return;
   }
   dispatch("splitStash", result);
@@ -210,8 +210,8 @@ export function registerSheetIntegration() {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "unbutton always-interactive fey-stash-sheet-button";
-    button.dataset.tooltip = "FEYPARTY.Transfer.Button";
-    button.ariaLabel = game.i18n.localize("FEYPARTY.Transfer.Button");
+    button.dataset.tooltip = "FEYHUB.Stash.Transfer.Button";
+    button.ariaLabel = game.i18n.localize("FEYHUB.Stash.Transfer.Button");
     button.innerHTML = '<i class="fa-solid fa-sack-dollar" inert></i>';
     button.addEventListener("click", event => {
       event.preventDefault();
@@ -226,7 +226,7 @@ export function registerSheetIntegration() {
     const actor = app.document;
     if (!actor?.isOwner || !getPurse(actor)) return;
     app.options.actions.feyManagerStashTransfer ??= function() { openTransferDialog(this.document); };
-    controls.push({ icon: "fa-solid fa-sack-dollar", label: "FEYPARTY.Transfer.Button", action: "feyManagerStashTransfer" });
+    controls.push({ icon: "fa-solid fa-sack-dollar", label: "FEYHUB.Stash.Transfer.Button", action: "feyManagerStashTransfer" });
   });
 
   // Sheets still built on the older Application class, such as pf2e's.
@@ -234,7 +234,7 @@ export function registerSheetIntegration() {
     const actor = app.document ?? app.actor;
     if (!actor?.isOwner || !getPurse(actor)) return;
     buttons.unshift({
-      label: game.i18n.localize("FEYPARTY.Transfer.Button"),
+      label: game.i18n.localize("FEYHUB.Stash.Transfer.Button"),
       class: "fey-stash-transfer",
       icon: "fa-solid fa-sack-dollar",
       onclick: () => openTransferDialog(actor)

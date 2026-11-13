@@ -1,8 +1,13 @@
 import {
-  MODULE_ID, QUEST_STATUSES, RUMOUR_STATUSES,
+  MODULE_ID, TYPES, QUEST_STATUSES, RUMOUR_STATUSES,
   getHubJournal, getEntries, getEntry, canEdit, canDelete,
   createEntry, updateEntry, deleteEntry, setHidden, objectiveList, objectiveRecord
 } from "../data/hub-store.mjs";
+import { RICH_FIELDS, HTML_FORMAT, enrichEntry, htmlText, storedHTML } from "../data/rich-text.mjs";
+import { rewardSummary } from "../data/rewards.mjs";
+import { getLastSeen, isUnread, entryBadge, unreadLog, markSeen } from "../data/unread.mjs";
+import { getState, canAdjust } from "../stash/store.mjs";
+import { offerRewards } from "./rewards-prompt.mjs";
 import { FeyEntryEditor } from "./entry-editor.mjs";
 import { FeyHubPermissionsApp } from "./permissions-app.mjs";
 import { STASH_ACTIONS, prepareStashContext, attachStashListeners, syncStashDrafts } from "../stash/stash-ui.mjs";
@@ -82,6 +87,7 @@ export class FeyHubApp extends HandlebarsApplicationMixin(ApplicationV2) {
       unlinkActor: FeyHubApp.#onUnlinkActor,
       gotoNpc: FeyHubApp.#onGotoNpc,
       permissions: FeyHubApp.#onPermissions,
+      payRewards: FeyHubApp.#onPayRewards,
       ...STASH_ACTIONS
     }
   };
@@ -100,6 +106,25 @@ export class FeyHubApp extends HandlebarsApplicationMixin(ApplicationV2) {
   expanded = new Set();
   stashLogOpen = false;
 
+  /**
+   * The tab being looked at, and when the user had last seen it before opening it. Cards keep
+   * their New/Updated badges against that time until the user leaves the tab or closes the hub,
+   * even though the tab is marked seen as soon as it's shown.
+   */
+  #viewedTab = null;
+  #viewedSince = null;
+
+  /** Whether the open tab has unread changes, so _onRender should mark it seen. */
+  #needsSeen = false;
+
+  /** Tell the user how many entries changed since they last looked, if any. */
+  static notifyUnread() {
+    if (!getHubJournal()) return;
+    const seen = getLastSeen();
+    const count = TYPES.reduce((n, type) => n + getEntries(type).filter(e => isUnread(e, seen[type])).length, 0);
+    if (count) ui.notifications.info(game.i18n.format("FEYHUB.Unread.Login", { count }));
+  }
+
   /* -------------------------------------------- */
   /*  Context                                     */
   /* -------------------------------------------- */
@@ -111,9 +136,30 @@ export class FeyHubApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const npcById = new Map(npcs.map(n => [n.id, n]));
     const counts = {};
 
+    // Unread tracking: badge cards against the time the user last saw the open tab.
+    const seen = getLastSeen();
+    if (this.#viewedTab !== this.activeTab) {
+      this.#viewedTab = this.activeTab;
+      this.#viewedSince = seen[this.activeTab];
+    }
+    const sinceFor = type => (type === this.activeTab ? this.#viewedSince : seen[type]);
+
+    // Enrich the rich text of the open tab's entries; only that tab is rendered.
+    const richHTML = new Map();
+    if (this.activeTab in RICH_FIELDS) {
+      const entries = this.activeTab === "npcs" ? npcs : getEntries(this.activeTab);
+      await Promise.all(entries.map(async e => richHTML.set(e.id, await enrichEntry(this.activeTab, e))));
+    }
+
+    // Searched as displayed, so players can't find a card by text in a GM-only secret block.
+    const richText = e => htmlText(richHTML.get(e.id));
+
     const decorate = (type, e) => ({
       ...e,
       type,
+      richHTML: richHTML.get(e.id) ?? "",
+      badge: entryBadge(e, sinceFor(type)),
+      badgeLabel: { new: game.i18n.localize("FEYHUB.Unread.New"), updated: game.i18n.localize("FEYHUB.Unread.Updated") }[entryBadge(e, sinceFor(type))],
       canEdit: editable,
       canDelete: canDelete(e),
       isGM: game.user.isGM,
@@ -129,6 +175,7 @@ export class FeyHubApp extends HandlebarsApplicationMixin(ApplicationV2) {
     };
 
     // Quests
+    const stashCurrencies = getState().currencies;
     const allQuests = getEntries("quests");
     counts.quests = allQuests.length;
     const questFilters = [{ id: "all", label: game.i18n.localize("FEYHUB.Quest.All"), count: allQuests.length }]
@@ -144,13 +191,20 @@ export class FeyHubApp extends HandlebarsApplicationMixin(ApplicationV2) {
       .map(q => {
         const objectives = objectiveList(q.objectives);
         const giver = npcRef(q.giverNpcId);
+        const rewards = rewardSummary(q, stashCurrencies);
         return {
           ...decorate("quests", q),
+          rewards,
+          rewardsPaid: q.rewardsPaid ? game.i18n.format("FEYHUB.Reward.PaidBy", {
+            name: q.rewardsPaid.user,
+            date: new Date(q.rewardsPaid.time).toLocaleDateString()
+          }) : null,
+          canPayRewards: editable && canAdjust() && (q.status === "completed") && !q.rewardsPaid && rewards.any,
           objectives,
           doneCount: objectives.filter(o => o.done).length,
           statusLabel: game.i18n.localize(`FEYHUB.Quest.Status.${q.status ?? "active"}`),
           giver,
-          searchText: [q.title, q.description, giver?.name, ...objectives.map(o => o.text)].join(" ").toLowerCase()
+          searchText: [q.title, richText(q), giver?.name, ...objectives.map(o => o.text)].join(" ").toLowerCase()
         };
       });
 
@@ -163,7 +217,7 @@ export class FeyHubApp extends HandlebarsApplicationMixin(ApplicationV2) {
         status,
         statusLabel: game.i18n.localize(`FEYHUB.Rumour.Status.${status}`),
         sourceNpc,
-        searchText: [r.text, r.source, r.location, sourceNpc?.name].join(" ").toLowerCase()
+        searchText: [richText(r), r.source, r.location, sourceNpc?.name].join(" ").toLowerCase()
       };
     });
     counts.rumours = rumours.length;
@@ -180,7 +234,7 @@ export class FeyHubApp extends HandlebarsApplicationMixin(ApplicationV2) {
         canView,
         disposition,
         dispositionLabel: game.i18n.localize(`FEYHUB.NPC.Disposition.${disposition}`),
-        searchText: [n.name, n.description, canView ? actor.name : ""].join(" ").toLowerCase()
+        searchText: [n.name, richText(n), canView ? actor.name : ""].join(" ").toLowerCase()
       };
     });
     counts.npcs = npcList.length;
@@ -188,15 +242,25 @@ export class FeyHubApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // Notes
     const notes = getEntries("notes").sort(byUpdated).map(n => ({
       ...decorate("notes", n),
-      searchText: [n.title, n.text].join(" ").toLowerCase()
+      searchText: [n.title, richText(n)].join(" ").toLowerCase()
     }));
     counts.notes = notes.length;
+
+    // Unread counts per tab; the open tab is being looked at, so it shows none.
+    const entriesByTab = { quests: allQuests, rumours, npcs: npcList, notes };
+    const unread = {};
+    for (const [tab, entries] of Object.entries(entriesByTab)) {
+      unread[tab] = entries.filter(e => isUnread(e, seen[tab])).length;
+    }
+    unread.stash = unreadLog(getState().log, seen.stash).length;
+    this.#needsSeen = (unread[this.activeTab] ?? 0) > 0;
 
     const tabs = TABS.map(t => ({
       ...t,
       label: game.i18n.localize(t.label),
       count: counts[t.id],
       hasCount: t.id in counts,
+      unread: (t.id === this.activeTab) ? 0 : unread[t.id],
       active: t.id === this.activeTab
     }));
 
@@ -232,6 +296,12 @@ export class FeyHubApp extends HandlebarsApplicationMixin(ApplicationV2) {
     attachStashListeners(this);
   }
 
+  /** Next time the hub opens, badge the open tab against a fresh last-seen time. */
+  _onClose(options) {
+    super._onClose(options);
+    this.#viewedTab = null;
+  }
+
   /** Keep half-typed stash entries when another user's change re-renders the hub. */
   _syncPartState(partId, newElement, priorElement, state) {
     syncStashDrafts(newElement, priorElement);
@@ -242,6 +312,12 @@ export class FeyHubApp extends HandlebarsApplicationMixin(ApplicationV2) {
     await super._onRender(context, options);
     const html = this.element;
 
+    // The open tab has now been seen.
+    if (this.#needsSeen) {
+      this.#needsSeen = false;
+      markSeen(this.activeTab);
+    }
+
     // Live search filter, applied in the DOM so the input keeps focus.
     const input = html.querySelector("input.fey-search-input");
     input?.addEventListener("input", event => {
@@ -249,6 +325,14 @@ export class FeyHubApp extends HandlebarsApplicationMixin(ApplicationV2) {
       this.#applySearch();
     });
     this.#applySearch();
+
+    // Secret blocks: enrichHTML wraps them in <secret-block> elements whose Reveal/Hide button
+    // only fires a "change" event, so the hub saves the toggle itself. Only the GM may toggle;
+    // players never see unrevealed secrets and shouldn't be able to hide revealed ones.
+    for (const block of html.querySelectorAll(".fey-rich secret-block")) {
+      if (game.user.isGM) block.addEventListener("change", this.#onRevealSecret.bind(this));
+      else block.querySelector(":scope > .secret > button.reveal")?.remove();
+    }
 
     // Remember which cards are expanded.
     for (const details of html.querySelectorAll("details.fey-card")) {
@@ -270,6 +354,21 @@ export class FeyHubApp extends HandlebarsApplicationMixin(ApplicationV2) {
       });
       panel.addEventListener("drop", this.#onDropActor.bind(this));
     }
+  }
+
+  /** Toggle a secret block's revealed state in the entry's stored text. */
+  async #onRevealSecret(event) {
+    event.stopPropagation();
+    const block = event.currentTarget;
+    const card = block.closest(".fey-card[data-type][data-id]");
+    const type = card?.dataset.type;
+    if (!game.user.isGM || !(type in RICH_FIELDS)) return;
+    const found = getEntry(type, card.dataset.id);
+    if (!found) return;
+    const content = storedHTML(type, found.entry);
+    const modified = block.toggleRevealed(content);
+    if (modified === content) return;
+    await updateEntry(type, card.dataset.id, { [RICH_FIELDS[type]]: modified, format: HTML_FORMAT });
   }
 
   #applySearch() {
@@ -386,6 +485,12 @@ export class FeyHubApp extends HandlebarsApplicationMixin(ApplicationV2) {
       card?.scrollIntoView({ block: "center", behavior: "smooth" });
       card?.classList.add("flash");
     });
+  }
+
+  static #onPayRewards(event, target) {
+    const { id } = FeyHubApp.#cardData(target);
+    const quest = getEntry("quests", id)?.entry;
+    if (quest && !quest.rewardsPaid) offerRewards(quest);
   }
 
   static #onPermissions() {

@@ -23,7 +23,12 @@ The stash is a tab in the hub, and it also keeps its own ways in:
 - You can bind a key to *Toggle Party Stash* under *Configure Controls*.
 - Macros can call `game.modules.get("FeyHub").api.stash.toggle()`.
 
-Stash changes are passed to the GM's client and applied there, so **a GM must be logged in** for players to change the stash. Everyone can still view it without a GM. The world setting *Players can manage the Party Stash* controls whether players can add or remove currency types and delete resources.
+Stash changes are passed to the GM's client and applied there, so **a GM must be logged in** for players to change the stash. Everyone can still view it without a GM. Three world settings control what players can do:
+- *Players can manage the Party Stash*: add or remove currency types, delete resources, and divide the stash among characters.
+- *Players can change stash coin directly*: use the ± buttons, type new totals, deposit or withdraw coin without a character, and pay quest rewards into the stash. With this off, players can still move coin between their own characters and the stash.
+- *Players can add coin to the stash from chat*: see the *Add to Party Stash* button on chat messages that contain only coin.
+
+All three are on by default. They're checked on the GM's client, so the buttons can't be brought back through the console. Chat messages already on screen when the chat setting is turned off keep their button until reloaded, but the GM refuses the request.
 
 ## Installing in Foundry
 
@@ -48,6 +53,34 @@ Open the **lock** icon in the hub toolbar, or go to *Game Settings → Configure
 - **The GM** can do everything, and can also hide or reveal any entry (eye icon, or the *Hidden from players* checkbox in the editor).
 
 Editors are made Owner of the hub journal, so they can make changes even when no GM is logged in. Hidden entries can only be created and changed while the GM is online.
+
+## Quest rewards
+A quest can have rewards that are paid into the Party Stash when it is completed:
+- In the quest editor, enter coin amounts for any of the stash's currencies, and drag Items from the sidebar or a compendium onto *Rewards*.
+- When the quest is saved as **Completed**, you're asked whether to pay its rewards into the stash. Coin is added to the stash's currencies and items become party resources linked to the item, so they can be handed out later.
+- Rewards are only paid once. If you skip the prompt, the quest's card has a **Pay into stash** button.
+- The GM and hub editors can pay rewards. Like other stash changes, a GM must be logged in.
+
+## Chat announcements
+Turn on *Announce hub changes in chat* in the module settings to post a chat message when:
+- a quest, rumour or NPC is added (or a hidden one is revealed)
+- a quest's status changes
+- a rumour is confirmed or proven false
+- quest rewards are paid into the stash
+
+Hidden entries are never announced, and rumour quotes leave out secret blocks that haven't been revealed.
+
+## What's new
+Each player's tabs show how many entries someone else added or changed since that player last looked, and those cards get a **New** or **Updated** badge. The Stash tab counts new activity log lines. After you log in, a notification says how many hub entries have changed. Looking at a tab marks it as seen. The badges stay on its cards until you switch tabs or close the hub.
+
+## Formatting and links
+Quest and NPC descriptions, rumours and notes use Foundry's rich text editor, so they can have headings, lists, bold text and so on.
+
+- Drag an Item, Actor, Scene, Journal entry or other document into the text to add a link to it, or type a link such as `@UUID[Item.abc123]{Ring of Warding}`. Links open the document when clicked.
+- Inline rolls like `[[/r 1d20]]` can be clicked to roll.
+- **Secret** blocks from the editor's toolbar are only shown to the GM in the hub. Like hidden entries, their text is still sent to every client.
+
+Entries written with an older version of FeyHub are converted to rich text the first time a GM logs in.
 
 ## Linking NPCs to Actors
 - Drag an Actor from the sidebar onto the **NPCs** tab to create a new NPC entry from it.

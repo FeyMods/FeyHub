@@ -7,12 +7,13 @@
   <summary class="fey-card-header">
     <img class="fey-portrait" src="{{img}}" alt="">
     <span class="fey-card-title">{{name}}</span>
+    {{#if badge}}<span class="fey-badge fey-unread-badge is-{{badge}}">{{badgeLabel}}</span>{{/if}}
     {{#if hidden}}<span class="fey-badge is-hidden"><i class="fa-solid fa-eye-slash"></i> {{localize "FEYHUB.Hidden"}}</span>{{/if}}
     {{#if linked}}<i class="fa-solid fa-link fey-linked" data-tooltip="FEYHUB.NPC.LinkedActor"></i>{{/if}}
     <span class="fey-badge disposition-{{disposition}}">{{dispositionLabel}}</span>
   </summary>
   <div class="fey-card-body">
-    {{#if description}}<p class="fey-text">{{description}}</p>{{/if}}
+    {{#if richHTML}}<div class="fey-text fey-rich">{{{richHTML}}}</div>{{/if}}
     {{#if canView}}
     <div class="fey-actions">
       <button type="button" class="fey-btn" data-action="openActor">

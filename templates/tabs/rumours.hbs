@@ -3,11 +3,12 @@
   <div class="fey-card-header">
     <i class="fa-solid fa-quote-left fey-quote"></i>
     <span class="fey-spacer"></span>
+    {{#if badge}}<span class="fey-badge fey-unread-badge is-{{badge}}">{{badgeLabel}}</span>{{/if}}
     {{#if hidden}}<span class="fey-badge is-hidden"><i class="fa-solid fa-eye-slash"></i> {{localize "FEYHUB.Hidden"}}</span>{{/if}}
     <span class="fey-badge rumour-{{status}}">{{statusLabel}}</span>
   </div>
   <div class="fey-card-body">
-    <p class="fey-text fey-rumour-text">{{text}}</p>
+    <div class="fey-text fey-rich fey-rumour-text">{{{richHTML}}}</div>
     {{#if source}}
     <p class="fey-line"><i class="fa-solid fa-ear-listen"></i> {{localize "FEYHUB.Rumour.HeardFrom"}}: <strong>{{source}}</strong></p>
     {{/if}}

@@ -1,9 +1,11 @@
-import { MODULE_ID, ensureJournals, isHubJournal, migrateObjectives } from "./data/hub-store.mjs";
+import { MODULE_ID, ensureJournals, isHubJournal, migrateEntries, getEntries } from "./data/hub-store.mjs";
 import { FeyHubApp } from "./apps/hub-app.mjs";
 import { FeyHubPermissionsApp } from "./apps/permissions-app.mjs";
 import { FeyStashApp } from "./stash/stash-app.mjs";
 import { registerStash, readyStash } from "./stash/setup.mjs";
 import { registerMigration, migrateFromPreviousId } from "./data/migrate.mjs";
+import { registerAnnouncements } from "./data/announce.mjs";
+import { registerUnread, initLastSeen } from "./data/unread.mjs";
 
 const TEMPLATE_ROOT = `modules/${MODULE_ID}/templates`;
 
@@ -23,6 +25,8 @@ Hooks.once("init", () => {
   });
 
   registerMigration();
+  registerAnnouncements();
+  registerUnread();
 
   game.settings.registerMenu(MODULE_ID, "permissions", {
     name: "FEYHUB.Permissions.Title",
@@ -67,7 +71,9 @@ Hooks.once("ready", async () => {
   await migrateFromPreviousId();
   await readyStash();
   await ensureJournals();
-  await migrateObjectives();
+  await migrateEntries();
+  await initLastSeen();
+  FeyHubApp.notifyUnread();
   FeyHubApp.refresh();
 });
 
@@ -86,7 +92,7 @@ Hooks.on("getSceneControlButtons", controls => {
   };
   tokens.tools.feyStash = {
     name: "feyStash",
-    title: "FEYPARTY.ControlTitle",
+    title: "FEYHUB.Stash.ControlTitle",
     icon: "fa-solid fa-sack-dollar",
     order: Object.keys(tokens.tools).length,
     button: true,
@@ -114,7 +120,19 @@ Hooks.on("updateSetting", setting => {
   if ([`${MODULE_ID}.hubJournalId`, `${MODULE_ID}.secretJournalId`].includes(setting.key)) FeyHubApp.refresh();
 });
 
-// Linked actors may change name, portrait or permissions.
+/** Is the hub open and showing an NPC linked to this actor? */
+function hubShowsActor(actor) {
+  if (!foundry.applications.instances.get("fey-hub")?.rendered) return false;
+  return getEntries("npcs").some(npc => npc.actorUuid === actor.uuid);
+}
+
+// Linked actors may change name, portrait or permissions, or be deleted. Other actors don't
+// appear in the hub, so their changes don't re-render it.
 Hooks.on("updateActor", (actor, changes) => {
-  if (("name" in changes) || ("img" in changes) || ("ownership" in changes)) FeyHubApp.refresh();
+  if (!(("name" in changes) || ("img" in changes) || ("ownership" in changes))) return;
+  if (hubShowsActor(actor)) FeyHubApp.refresh();
+});
+
+Hooks.on("deleteActor", actor => {
+  if (hubShowsActor(actor)) FeyHubApp.refresh();
 });

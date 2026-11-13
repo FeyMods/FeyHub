@@ -1,5 +1,5 @@
 import { depositedFlag } from "./constants.mjs";
-import { getState, dispatch } from "./store.mjs";
+import { getState, dispatch, canChatDeposit } from "./store.mjs";
 import { messageText, parseCoins } from "./coins.mjs";
 
 /**
@@ -11,18 +11,20 @@ export function registerChatIntegration() {
     if (message.isRoll) return;
     const content = html.querySelector(".message-content");
     if (!content || !parseCoins(messageText(message), getState().currencies)) return;
+    const added = depositedFlag(message);
+    // Messages shown before the setting changed keep their button; the GM still refuses the request.
+    if (!added && !canChatDeposit()) return;
 
     const footer = document.createElement("div");
     footer.className = "fey-party-chat";
-    const added = depositedFlag(message);
     if (added) {
       footer.innerHTML = `<i class="fa-solid fa-check" inert></i> ${foundry.utils.escapeHTML(
-        game.i18n.format("FEYPARTY.Chat.Added", { name: added.user })
+        game.i18n.format("FEYHUB.Stash.Chat.Added", { name: added.user })
       )}`;
     } else {
       const button = document.createElement("button");
       button.type = "button";
-      button.innerHTML = `<i class="fa-solid fa-sack-dollar" inert></i> ${game.i18n.localize("FEYPARTY.Chat.Add")}`;
+      button.innerHTML = `<i class="fa-solid fa-sack-dollar" inert></i> ${game.i18n.localize("FEYHUB.Stash.Chat.Add")}`;
       button.addEventListener("click", event => {
         event.preventDefault();
         if (dispatch("chatDeposit", { messageId: message.id })) button.disabled = true;

@@ -2,6 +2,10 @@ import {
   MODULE_ID, QUEST_STATUSES, RUMOUR_STATUSES, NPC_DISPOSITIONS,
   getEntries, getEntry, createEntry, updateEntry, objectiveList, objectiveRecord
 } from "../data/hub-store.mjs";
+import { RICH_FIELDS, HTML_FORMAT, storedHTML, isBlankHTML } from "../data/rich-text.mjs";
+import { hasRewards, rewardItems } from "../data/rewards.mjs";
+import { getState, canAdjust } from "../stash/store.mjs";
+import { offerRewards } from "./rewards-prompt.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -43,7 +47,8 @@ export class FeyEntryEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     },
     actions: {
       addObjective: FeyEntryEditor.#onAddObjective,
-      removeObjective: FeyEntryEditor.#onRemoveObjective
+      removeObjective: FeyEntryEditor.#onRemoveObjective,
+      removeReward: FeyEntryEditor.#onRemoveReward
     }
   };
 
@@ -85,6 +90,17 @@ export class FeyEntryEditor extends HandlebarsApplicationMixin(ApplicationV2) {
       isRumour: this.type === "rumours",
       isNPC: this.type === "npcs",
       isNote: this.type === "notes",
+      richText: storedHTML(this.type, entry),
+      rewardCurrencies: getState().currencies.map(c => ({
+        id: c.id,
+        abbr: c.abbr || c.label,
+        amount: entry.rewards?.coins?.[c.id] || ""
+      })),
+      rewardItems: rewardItems(entry),
+      rewardsPaid: entry.rewardsPaid ? game.i18n.format("FEYHUB.Reward.PaidBy", {
+        name: entry.rewardsPaid.user,
+        date: new Date(entry.rewardsPaid.time).toLocaleDateString()
+      }) : null,
       objectives: objectiveList(entry.objectives).map(o => ({ ...o, key: o.id })),
       questStatuses: choices(QUEST_STATUSES, "FEYHUB.Quest.Status"),
       rumourStatuses: choices(RUMOUR_STATUSES, "FEYHUB.Rumour.Status"),
@@ -97,25 +113,66 @@ export class FeyEntryEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
   async _onRender(context, options) {
     await super._onRender(context, options);
-    const zone = this.element.querySelector(".fey-drop-zone");
-    if (!zone) return;
-    zone.addEventListener("dragover", event => {
-      event.preventDefault();
-      zone.classList.add("drag-over");
-    });
-    zone.addEventListener("dragleave", () => zone.classList.remove("drag-over"));
-    zone.addEventListener("drop", this.#onDropActor.bind(this));
+    const zones = [
+      [this.element.querySelector(".fey-drop-zone:not(.fey-reward-drop)"), this.#onDropActor],
+      [this.element.querySelector(".fey-reward-drop"), this.#onDropReward]
+    ];
+    for (const [zone, handler] of zones) {
+      if (!zone) continue;
+      zone.addEventListener("dragover", event => {
+        event.preventDefault();
+        zone.classList.add("drag-over");
+      });
+      zone.addEventListener("dragleave", () => zone.classList.remove("drag-over"));
+      zone.addEventListener("drop", handler.bind(this));
+    }
+  }
+
+  /** Read Foundry drag data from a drop on one of the editor's drop zones. */
+  static #dropData(event) {
+    event.preventDefault();
+    event.currentTarget.classList.remove("drag-over");
+    try {
+      return JSON.parse(event.dataTransfer.getData("text/plain"));
+    } catch {
+      return null;
+    }
+  }
+
+  /** An Item dropped on the rewards: add it, or add one more of it if it's already listed. */
+  async #onDropReward(event) {
+    const data = FeyEntryEditor.#dropData(event);
+    if (data?.type !== "Item" || !data.uuid) return;
+    const item = await fromUuid(data.uuid);
+    if (!(item instanceof Item)) return;
+
+    const list = this.element.querySelector(".fey-reward-items");
+    for (const row of list.querySelectorAll(".fey-reward-row")) {
+      if (row.querySelector("input[name$='.uuid']")?.value !== item.uuid) continue;
+      const quantity = row.querySelector("input[name$='.quantity']");
+      quantity.value = (Math.trunc(Number(quantity.value)) || 0) + 1;
+      return;
+    }
+
+    const key = foundry.utils.randomID();
+    const esc = foundry.utils.escapeHTML;
+    const row = document.createElement("li");
+    row.className = "fey-reward-row";
+    row.innerHTML = `
+      <input type="hidden" name="rewards.items.${key}.uuid" value="${esc(item.uuid)}">
+      <input type="hidden" name="rewards.items.${key}.name" value="${esc(item.name)}">
+      <input type="hidden" name="rewards.items.${key}.img" value="${esc(item.img ?? "")}">
+      <img src="${esc(item.img ?? "")}" alt="">
+      <span class="fey-reward-name">${esc(item.name)}</span>
+      <input type="number" name="rewards.items.${key}.quantity" value="1" min="1" step="1">
+      <button type="button" class="fey-icon-btn" data-action="removeReward" data-tooltip="FEYHUB.Remove">
+        <i class="fa-solid fa-xmark"></i>
+      </button>`;
+    list.append(row);
   }
 
   async #onDropActor(event) {
-    event.preventDefault();
-    event.currentTarget.classList.remove("drag-over");
-    let data;
-    try {
-      data = JSON.parse(event.dataTransfer.getData("text/plain"));
-    } catch {
-      return;
-    }
+    const data = FeyEntryEditor.#dropData(event);
     if (data?.type !== "Actor" || !data.uuid) return;
     const actor = await fromUuid(data.uuid);
     if (!actor) return;
@@ -153,6 +210,10 @@ export class FeyEntryEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     target.closest(".fey-objective-row")?.remove();
   }
 
+  static #onRemoveReward(event, target) {
+    target.closest(".fey-reward-row")?.remove();
+  }
+
   static async #onSubmit(event, form, formData) {
     const data = foundry.utils.expandObject(formData.object);
     const hidden = game.user.isGM ? !!data.hidden : undefined;
@@ -163,15 +224,28 @@ export class FeyEntryEditor extends HandlebarsApplicationMixin(ApplicationV2) {
       if (typeof v === "string") data[k] = v.trim() || null;
     }
 
-    // Objectives are saved as a record in the order shown; ones removed in the form are deleted.
-    let removeObjectives = [];
+    // The rich text field is saved as HTML from the editor; an empty paragraph counts as blank.
+    const field = RICH_FIELDS[this.type];
+    if (isBlankHTML(data[field])) data[field] = null;
+    if (!data[field] && ["rumours", "notes"].includes(this.type)) {
+      throw new Error(game.i18n.localize("FEYHUB.Warn.TextRequired"));
+    }
+    data.format = HTML_FORMAT;
+
+    // Objectives and rewards are saved as records; keys removed in the form are deleted.
+    const remove = {};
+    const previous = this.entryId ? getEntry(this.type, this.entryId) : null;
     if (this.type === "quests") {
       const list = Object.values(data.objectives ?? {})
         .filter(o => o?.text?.trim())
         .map(o => ({ id: o.id || foundry.utils.randomID(), text: o.text.trim(), done: !!o.done }));
       data.objectives = objectiveRecord(list);
-      const before = this.entryId ? objectiveList(getEntry(this.type, this.entryId)?.entry.objectives) : [];
-      removeObjectives = before.map(o => o.id).filter(id => !(id in data.objectives));
+      const before = objectiveList(previous?.entry.objectives);
+      remove.objectives = before.map(o => o.id).filter(id => !(id in data.objectives));
+
+      data.rewards = FeyEntryEditor.#readRewards(data.rewards);
+      remove["rewards.coins"] = Object.keys(previous?.entry.rewards?.coins ?? {}).filter(id => !(id in data.rewards.coins));
+      remove["rewards.items"] = Object.keys(previous?.entry.rewards?.items ?? {}).filter(id => !(id in data.rewards.items));
     }
 
     // Keep the portrait in step with the linked actor.
@@ -179,7 +253,27 @@ export class FeyEntryEditor extends HandlebarsApplicationMixin(ApplicationV2) {
       data.img = fromUuidSync(data.actorUuid)?.img ?? data.img;
     }
 
-    if (this.entryId) await updateEntry(this.type, this.entryId, data, { hidden, removeObjectives });
-    else await createEntry(this.type, data, { hidden: !!hidden });
+    const saved = this.entryId
+      ? await updateEntry(this.type, this.entryId, data, { hidden, remove })
+      : await createEntry(this.type, data, { hidden: !!hidden });
+
+    // Completing a quest offers to pay its rewards into the stash.
+    const completed = (this.type === "quests") && (data.status === "completed") && (previous?.entry.status !== "completed");
+    if (saved && completed && canAdjust() && !saved.rewardsPaid && hasRewards(saved)) offerRewards(saved);
+  }
+
+  /** The rewards from the form: whole positive coin amounts, and items with a quantity of at least 1. */
+  static #readRewards(raw = {}) {
+    const toInt = value => Math.trunc(Number(value)) || 0;
+    const coins = {};
+    for (const [id, amount] of Object.entries(raw.coins ?? {})) {
+      if (toInt(amount) > 0) coins[id] = toInt(amount);
+    }
+    const items = {};
+    Object.entries(raw.items ?? {}).forEach(([id, item], sort) => {
+      if (!item?.uuid) return;
+      items[id] = { id, uuid: item.uuid, name: item.name ?? "", img: item.img ?? "", quantity: Math.max(1, toInt(item.quantity)), sort };
+    });
+    return { coins, items };
   }
 }

@@ -1,4 +1,4 @@
-import { getState, canManage, dispatch } from "./store.mjs";
+import { getState, canManage, canAdjust, dispatch } from "./store.mjs";
 import { transfer, transferActors, openSplitDialog } from "./purse.mjs";
 
 /**
@@ -12,12 +12,17 @@ const { DialogV2 } = foundry.applications.api;
 /** Template context for the stash; `logOpen` is the owning app's activity-log state. */
 export function prepareStashContext(logOpen = false) {
   const state = getState();
+  const actors = transferActors().map(a => ({ uuid: a.uuid, name: a.name, selected: a === game.user.character }));
+  const adjust = canAdjust();
   return {
     currencies: state.currencies,
     resources: state.resources,
     log: state.log.map(entry => ({ ...entry, timeLabel: new Date(entry.time).toLocaleString() })),
-    actors: transferActors().map(a => ({ uuid: a.uuid, name: a.name, selected: a === game.user.character })),
+    actors,
     canManage: canManage(),
+    // Without permission to change coin directly, coin only moves to and from characters.
+    canAdjust: adjust,
+    canTransact: adjust || (actors.length > 0),
     isGM: game.user.isGM,
     logOpen
   };
@@ -54,7 +59,7 @@ function onTransaction(event, target) {
   const actorUuid = draft(target, "txActor")?.value;
   const amount = Math.trunc(Number(amountInput?.value));
   if (!currencyId || !(amount > 0)) {
-    ui.notifications.warn("FEYPARTY.Notify.InvalidAmount", { localize: true });
+    ui.notifications.warn("FEYHUB.Stash.Notify.InvalidAmount", { localize: true });
     return;
   }
   const direction = target.dataset.direction;
@@ -69,11 +74,15 @@ function onTransaction(event, target) {
 
   // Adjusting the stash alone.
   else {
+    if (!canAdjust()) {
+      ui.notifications.warn("FEYHUB.Stash.Notify.NoAdjust", { localize: true });
+      return;
+    }
     const withdraw = direction === "withdraw";
     if (withdraw) {
       const currency = getState().currencies.find(c => c.id === currencyId);
       if (!currency || currency.amount < amount) {
-        ui.notifications.warn(game.i18n.format("FEYPARTY.Notify.Insufficient", {
+        ui.notifications.warn(game.i18n.format("FEYHUB.Stash.Notify.Insufficient", {
           currency: currency?.label ?? "", amount: currency?.amount ?? 0
         }));
         return;
@@ -101,8 +110,8 @@ async function onRemoveCurrency(event, target) {
   const currency = getState().currencies.find(c => c.id === id);
   if (!currency) return;
   const confirmed = await DialogV2.confirm({
-    window: { title: "FEYPARTY.Confirm.RemoveCurrencyTitle" },
-    content: `<p>${game.i18n.format("FEYPARTY.Confirm.RemoveCurrency", {
+    window: { title: "FEYHUB.Stash.Confirm.RemoveCurrencyTitle" },
+    content: `<p>${game.i18n.format("FEYHUB.Stash.Confirm.RemoveCurrency", {
       currency: foundry.utils.escapeHTML(currency.label), amount: currency.amount
     })}</p>`
   });
@@ -135,8 +144,8 @@ async function onRemoveResource(event, target) {
   const resource = getState().resources.find(r => r.id === id);
   if (!resource) return;
   const confirmed = await DialogV2.confirm({
-    window: { title: "FEYPARTY.Confirm.RemoveResourceTitle" },
-    content: `<p>${game.i18n.format("FEYPARTY.Confirm.RemoveResource", {
+    window: { title: "FEYHUB.Stash.Confirm.RemoveResourceTitle" },
+    content: `<p>${game.i18n.format("FEYHUB.Stash.Confirm.RemoveResource", {
       name: foundry.utils.escapeHTML(resource.name)
     })}</p>`
   });
@@ -147,7 +156,7 @@ async function onOpenResourceItem(event, target) {
   const resource = getState().resources.find(r => r.id === rowId(target));
   const item = resource?.itemUuid ? await fromUuid(resource.itemUuid) : null;
   if (!item) {
-    ui.notifications.warn("FEYPARTY.Notify.ItemMissing", { localize: true });
+    ui.notifications.warn("FEYHUB.Stash.Notify.ItemMissing", { localize: true });
     return;
   }
   item.sheet.render(true);
@@ -159,8 +168,8 @@ function onUnlinkResource(event, target) {
 
 async function onClearLog() {
   const confirmed = await DialogV2.confirm({
-    window: { title: "FEYPARTY.Confirm.ClearLogTitle" },
-    content: `<p>${game.i18n.localize("FEYPARTY.Confirm.ClearLog")}</p>`
+    window: { title: "FEYHUB.Stash.Confirm.ClearLogTitle" },
+    content: `<p>${game.i18n.localize("FEYHUB.Stash.Confirm.ClearLog")}</p>`
   });
   if (confirmed) dispatch("logClear");
 }
@@ -255,15 +264,15 @@ function onDragStart(event) {
 async function giveResource(actor, resourceId) {
   const resource = getState().resources.find(r => r.id === resourceId);
   if (!resource?.itemUuid) {
-    ui.notifications.warn("FEYPARTY.Notify.NoResource", { localize: true });
+    ui.notifications.warn("FEYHUB.Stash.Notify.NoResource", { localize: true });
     return;
   }
   if (!actor.isOwner) {
-    ui.notifications.warn(game.i18n.format("FEYPARTY.Notify.NotOwner", { name: actor.name }));
+    ui.notifications.warn(game.i18n.format("FEYHUB.Stash.Notify.NotOwner", { name: actor.name }));
     return;
   }
   if (resource.quantity < 1) {
-    ui.notifications.warn(game.i18n.format("FEYPARTY.Notify.InsufficientResource", resource));
+    ui.notifications.warn(game.i18n.format("FEYHUB.Stash.Notify.InsufficientResource", resource));
     return;
   }
 
@@ -272,13 +281,13 @@ async function giveResource(actor, resourceId) {
     const esc = foundry.utils.escapeHTML;
     quantity = await DialogV2.prompt({
       window: {
-        title: game.i18n.format("FEYPARTY.Give.Title", { name: resource.name, actor: actor.name }),
+        title: game.i18n.format("FEYHUB.Stash.Give.Title", { name: resource.name, actor: actor.name }),
         icon: "fa-solid fa-hand-holding"
       },
-      content: `<label>${esc(game.i18n.format("FEYPARTY.Give.Quantity", { quantity: resource.quantity }))}
+      content: `<label>${esc(game.i18n.format("FEYHUB.Stash.Give.Quantity", { quantity: resource.quantity }))}
         <input type="number" name="quantity" value="1" min="1" max="${resource.quantity}" step="1" autofocus></label>`,
       ok: {
-        label: "FEYPARTY.Give.Confirm",
+        label: "FEYHUB.Stash.Give.Confirm",
         icon: "fa-solid fa-hand-holding",
         callback: (event, button) => Math.trunc(Number(button.form.elements.quantity.value))
       },
@@ -286,7 +295,7 @@ async function giveResource(actor, resourceId) {
     });
     if (quantity == null) return;
     if (!(quantity > 0) || quantity > resource.quantity) {
-      ui.notifications.warn(game.i18n.format("FEYPARTY.Notify.InsufficientResource", resource));
+      ui.notifications.warn(game.i18n.format("FEYHUB.Stash.Notify.InsufficientResource", resource));
       return;
     }
   }

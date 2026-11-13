@@ -11,6 +11,7 @@
   <summary class="fey-card-header">
     <i class="fa-solid fa-chevron-right fey-caret"></i>
     <span class="fey-card-title">{{title}}</span>
+    {{#if badge}}<span class="fey-badge fey-unread-badge is-{{badge}}">{{badgeLabel}}</span>{{/if}}
     {{#if hidden}}<span class="fey-badge is-hidden"><i class="fa-solid fa-eye-slash"></i> {{localize "FEYHUB.Hidden"}}</span>{{/if}}
     {{#if objectives.length}}<span class="fey-progress">{{doneCount}}/{{objectives.length}}</span>{{/if}}
     <span class="fey-badge status-{{status}}">{{statusLabel}}</span>
@@ -22,7 +23,7 @@
       <a class="fey-link" data-action="gotoNpc" data-npc="{{giver.id}}">{{giver.name}}</a>
     </p>
     {{/if}}
-    {{#if description}}<p class="fey-text">{{description}}</p>{{/if}}
+    {{#if richHTML}}<div class="fey-text fey-rich">{{{richHTML}}}</div>{{/if}}
     {{#if objectives.length}}
     <ul class="fey-objective-list">
       {{#each objectives}}
@@ -34,6 +35,24 @@
       </li>
       {{/each}}
     </ul>
+    {{/if}}
+    {{#if rewards.any}}
+    <div class="fey-rewards {{#if rewardsPaid}}is-paid{{/if}}">
+      <span class="fey-rewards-label"><i class="fa-solid fa-gift"></i> {{localize "FEYHUB.Reward.Title"}}:</span>
+      {{#each rewards.coins}}<span class="fey-reward-chip">{{amount}} {{abbr}}</span>{{/each}}
+      {{#each rewards.items}}
+      <a class="content-link fey-reward-chip" draggable="true" data-link data-uuid="{{uuid}}" data-tooltip="{{name}}">
+        {{#if img}}<img src="{{img}}" alt="">{{/if}}{{quantity}} × {{name}}
+      </a>
+      {{/each}}
+      {{#if rewardsPaid}}
+      <span class="fey-reward-status"><i class="fa-solid fa-circle-check"></i> {{rewardsPaid}}</span>
+      {{else if canPayRewards}}
+      <button type="button" class="fey-btn subtle" data-action="payRewards">
+        <i class="fa-solid fa-sack-dollar"></i> {{localize "FEYHUB.Reward.Pay"}}
+      </button>
+      {{/if}}
+    </div>
     {{/if}}
     {{> "modules/FeyHub/templates/tabs/card-footer.hbs"}}
   </div>

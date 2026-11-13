@@ -21,13 +21,32 @@ export function registerStash({ refresh, toggle }) {
   });
 
   game.settings.register(MODULE_ID, "playersManage", {
-    name: "FEYPARTY.Settings.PlayersManage.Name",
-    hint: "FEYPARTY.Settings.PlayersManage.Hint",
+    name: "FEYHUB.Stash.Settings.PlayersManage.Name",
+    hint: "FEYHUB.Stash.Settings.PlayersManage.Hint",
     scope: "world",
     config: true,
     type: Boolean,
     default: true,
     onChange: () => refresh()
+  });
+
+  game.settings.register(MODULE_ID, "playersAdjust", {
+    name: "FEYHUB.Stash.Settings.PlayersAdjust.Name",
+    hint: "FEYHUB.Stash.Settings.PlayersAdjust.Hint",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: true,
+    onChange: () => refresh()
+  });
+
+  game.settings.register(MODULE_ID, "playersChatDeposit", {
+    name: "FEYHUB.Stash.Settings.PlayersChatDeposit.Name",
+    hint: "FEYHUB.Stash.Settings.PlayersChatDeposit.Hint",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: true
   });
 
   game.settings.register(MODULE_ID, "stashPosition", {
@@ -46,7 +65,7 @@ export function registerStash({ refresh, toggle }) {
   });
 
   game.keybindings.register(MODULE_ID, "toggleStash", {
-    name: "FEYPARTY.Keybinding.Toggle",
+    name: "FEYHUB.Stash.Keybinding.Toggle",
     editable: [],
     onDown: () => {
       toggle();
@@ -65,7 +84,7 @@ export async function readyStash() {
   if (!game.users.activeGM?.isSelf) return;
 
   if (game.modules.get(LEGACY_ID)?.active) {
-    ui.notifications.warn("FEYPARTY.Notify.LegacyActive", { localize: true, permanent: true });
+    ui.notifications.warn("FEYHUB.Stash.Notify.LegacyActive", { localize: true, permanent: true });
   }
   if (game.settings.get(MODULE_ID, "stashImported")) return;
 
@@ -74,7 +93,7 @@ export async function readyStash() {
     await game.settings.set(MODULE_ID, "stash", stash);
     const playersManage = readWorldSetting(LEGACY_ID, "playersManage");
     if (typeof playersManage === "boolean") await game.settings.set(MODULE_ID, "playersManage", playersManage);
-    ui.notifications.info("FEYPARTY.Notify.Imported", { localize: true });
+    ui.notifications.info("FEYHUB.Stash.Notify.Imported", { localize: true });
   }
   await game.settings.set(MODULE_ID, "stashImported", true);
 }

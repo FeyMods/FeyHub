@@ -8,6 +8,9 @@
  * Entries are stored keyed by id so concurrent edits by different users merge.
  */
 
+import { RICH_FIELDS, HTML_FORMAT, storedHTML } from "./rich-text.mjs";
+import { announceChange } from "./announce.mjs";
+
 export const MODULE_ID = "FeyHub";
 
 /** The module's id before it was renamed; its world data is migrated once. */
@@ -165,6 +168,7 @@ export async function createEntry(type, data, { hidden = false } = {}) {
   const now = Date.now();
   const id = foundry.utils.randomID();
   const entry = {
+    format: HTML_FORMAT,
     ...data,
     id,
     createdBy: game.user.id,
@@ -173,6 +177,7 @@ export async function createEntry(type, data, { hidden = false } = {}) {
     updatedAt: now
   };
   await journal.update({ [`flags.${MODULE_ID}.${type}.${id}`]: entry });
+  announceChange(type, null, { ...entry, hidden });
   return entry;
 }
 
@@ -180,30 +185,33 @@ export async function createEntry(type, data, { hidden = false } = {}) {
  * Update an entry. Passing `hidden` (GM only) moves it between the shared and
  * secret journals.
  *
- * Changes are merged into the stored entry, so nested objects such as a quest's
- * objectives only need the keys that changed. Objective ids listed in
- * `removeObjectives` are deleted.
+ * Changes are merged into the stored entry, so nested records such as a quest's
+ * objectives only need the keys that changed. `remove` maps a dotted path inside the
+ * entry (such as "objectives" or "rewards.items") to keys of that record to delete.
  */
-export async function updateEntry(type, id, changes, { hidden, removeObjectives = [] } = {}) {
+export async function updateEntry(type, id, changes, { hidden, remove = {} } = {}) {
   if (!canEdit()) return denied();
   const found = getEntry(type, id);
   if (!found) return null;
   const stamp = { updatedBy: game.user.id, updatedAt: Date.now() };
+  const before = { ...found.entry, hidden: found.hidden };
 
   const move = game.user.isGM && (hidden !== undefined) && (hidden !== found.hidden);
   if (!move) {
-    const update = { ...changes, ...stamp };
-    // Deletion keys only apply when merging into an existing objectives record; an old
-    // objectives array is replaced outright by the new record.
-    const stored = found.entry.objectives;
-    if (removeObjectives.length && stored && !Array.isArray(stored)) {
-      update.objectives = { ...update.objectives };
-      for (const objectiveId of removeObjectives) {
-        if (objectiveId in stored) markDeleted(update.objectives, objectiveId);
-      }
+    const update = { ...foundry.utils.deepClone(changes), ...stamp };
+    for (const [path, keys] of Object.entries(remove)) {
+      // Deletion keys only apply when merging into an existing record; a value stored in
+      // another shape (such as an old objectives array) is replaced outright instead.
+      const stored = foundry.utils.getProperty(found.entry, path);
+      if (!keys?.length || !stored || (typeof stored !== "object") || Array.isArray(stored)) continue;
+      const target = { ...(foundry.utils.getProperty(update, path) ?? {}) };
+      for (const key of keys) if (key in stored) markDeleted(target, key);
+      foundry.utils.setProperty(update, path, target);
     }
     await found.journal.update({ [`flags.${MODULE_ID}.${type}.${id}`]: update });
-    return { ...found.entry, ...changes, ...stamp };
+    const entry = { ...found.entry, ...changes, ...stamp };
+    announceChange(type, before, { ...entry, hidden: found.hidden });
+    return entry;
   }
 
   const target = journalFor(hidden);
@@ -212,6 +220,7 @@ export async function updateEntry(type, id, changes, { hidden, removeObjectives 
   delete entry.hidden;
   await target.update({ [`flags.${MODULE_ID}.${type}.${id}`]: entry });
   await found.journal.update(deleteFlagKey(type, id));
+  announceChange(type, before, { ...entry, hidden });
   return entry;
 }
 
@@ -250,18 +259,31 @@ export function objectiveRecord(list) {
   return Object.fromEntries(list.map((o, sort) => [o.id, { id: o.id, text: o.text ?? "", done: !!o.done, sort }]));
 }
 
+/* -------------------------------------------- */
+/*  Migration                                   */
+/* -------------------------------------------- */
+
 /**
- * Convert objectives arrays saved by earlier versions into records. Only the active GM
- * does this; until then the helpers above read either shape.
+ * Bring entries saved by earlier versions up to date: objectives arrays become records, and
+ * plain text descriptions and notes become HTML. Only the active GM does this; until then
+ * the readers accept either shape.
  */
-export async function migrateObjectives() {
+export async function migrateEntries() {
   if (!game.users.activeGM?.isSelf) return;
   for (const journal of [getHubJournal(), getSecretJournal()]) {
-    const quests = journal?.getFlag(MODULE_ID, "quests") ?? {};
+    if (!journal) continue;
     const update = {};
-    for (const [id, quest] of Object.entries(quests)) {
-      if (Array.isArray(quest?.objectives)) {
-        update[`flags.${MODULE_ID}.quests.${id}.objectives`] = objectiveRecord(objectiveList(quest.objectives));
+    for (const type of TYPES) {
+      for (const [id, entry] of Object.entries(journal.getFlag(MODULE_ID, type) ?? {})) {
+        if (!entry || (typeof entry !== "object")) continue;
+        const path = `flags.${MODULE_ID}.${type}.${id}`;
+        if ((type === "quests") && Array.isArray(entry.objectives)) {
+          update[`${path}.objectives`] = objectiveRecord(objectiveList(entry.objectives));
+        }
+        if (entry.format !== HTML_FORMAT) {
+          update[`${path}.${RICH_FIELDS[type]}`] = storedHTML(type, entry) || null;
+          update[`${path}.format`] = HTML_FORMAT;
+        }
       }
     }
     if (Object.keys(update).length) await journal.update(update);

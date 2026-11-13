@@ -15,7 +15,7 @@
     </div>
     <div class="form-group stacked">
       <label>{{localize "FEYHUB.Description"}}</label>
-      <textarea name="description" rows="5">{{entry.description}}</textarea>
+      <prose-mirror name="description" class="fey-prose" value="{{richText}}" compact></prose-mirror>
     </div>
     <div class="form-group stacked">
       <label>{{localize "FEYHUB.Quest.Objectives"}}</label>
@@ -35,12 +35,45 @@
         <i class="fa-solid fa-plus"></i> {{localize "FEYHUB.Quest.AddObjective"}}
       </button>
     </div>
+    <div class="form-group stacked fey-rewards-edit">
+      <label>{{localize "FEYHUB.Reward.Title"}}</label>
+      <p class="hint">{{localize "FEYHUB.Reward.Hint"}}</p>
+      {{#if rewardsPaid}}
+      <p class="fey-reward-paid"><i class="fa-solid fa-circle-check"></i> {{rewardsPaid}}</p>
+      {{/if}}
+      <div class="fey-reward-coins">
+        {{#each rewardCurrencies}}
+        <label class="fey-reward-coin">
+          <input type="number" name="rewards.coins.{{id}}" value="{{amount}}" min="0" step="1" placeholder="0">
+          <span>{{abbr}}</span>
+        </label>
+        {{/each}}
+      </div>
+      <ul class="fey-reward-items">
+        {{#each rewardItems}}
+        <li class="fey-reward-row">
+          <input type="hidden" name="rewards.items.{{id}}.uuid" value="{{uuid}}">
+          <input type="hidden" name="rewards.items.{{id}}.name" value="{{name}}">
+          <input type="hidden" name="rewards.items.{{id}}.img" value="{{img}}">
+          <img src="{{img}}" alt="">
+          <span class="fey-reward-name">{{name}}</span>
+          <input type="number" name="rewards.items.{{id}}.quantity" value="{{quantity}}" min="1" step="1">
+          <button type="button" class="fey-icon-btn" data-action="removeReward" data-tooltip="FEYHUB.Remove">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </li>
+        {{/each}}
+      </ul>
+      <div class="fey-drop-zone fey-reward-drop">
+        <i class="fa-solid fa-gift"></i> {{localize "FEYHUB.Reward.DropZone"}}
+      </div>
+    </div>
     {{/if}}
 
     {{#if isRumour}}
     <div class="form-group stacked">
       <label>{{localize "FEYHUB.Rumour.Text"}}</label>
-      <textarea name="text" rows="4" required autofocus>{{entry.text}}</textarea>
+      <prose-mirror name="text" class="fey-prose" value="{{richText}}" compact></prose-mirror>
     </div>
     <div class="form-group">
       <label>{{localize "FEYHUB.Rumour.HeardFrom"}}</label>
@@ -71,7 +104,7 @@
     </div>
     <div class="form-group stacked">
       <label>{{localize "FEYHUB.NPC.Description"}}</label>
-      <textarea name="description" rows="4" placeholder="{{localize "FEYHUB.NPC.DescriptionPlaceholder"}}">{{entry.description}}</textarea>
+      <prose-mirror name="description" class="fey-prose" value="{{richText}}" compact></prose-mirror>
     </div>
     <div class="form-group">
       <label>{{localize "FEYHUB.NPC.LinkedActor"}}</label>
@@ -90,7 +123,7 @@
     </div>
     <div class="form-group stacked">
       <label>{{localize "FEYHUB.Note.Text"}}</label>
-      <textarea name="text" rows="6" required>{{entry.text}}</textarea>
+      <prose-mirror name="text" class="fey-prose" value="{{richText}}" compact></prose-mirror>
     </div>
     {{/if}}
 

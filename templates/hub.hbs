@@ -11,6 +11,7 @@
       <i class="{{icon}}"></i>
       <span class="fey-tab-label">{{label}}</span>
       {{#if hasCount}}<span class="fey-count">{{count}}</span>{{/if}}
+      {{#if unread}}<span class="fey-unread" data-tooltip="{{localize "FEYHUB.Unread.Tooltip"}}">{{unread}}</span>{{/if}}
     </button>
     {{/each}}
   </nav>

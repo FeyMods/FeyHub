@@ -3,10 +3,11 @@
   <div class="fey-card-header">
     <i class="fa-solid fa-note-sticky"></i>
     <span class="fey-card-title">{{#if title}}{{title}}{{else}}{{localize "FEYHUB.Note.Untitled"}}{{/if}}</span>
+    {{#if badge}}<span class="fey-badge fey-unread-badge is-{{badge}}">{{badgeLabel}}</span>{{/if}}
     {{#if hidden}}<span class="fey-badge is-hidden"><i class="fa-solid fa-eye-slash"></i> {{localize "FEYHUB.Hidden"}}</span>{{/if}}
   </div>
   <div class="fey-card-body">
-    <p class="fey-text">{{text}}</p>
+    <div class="fey-text fey-rich">{{{richHTML}}}</div>
     {{> "modules/FeyHub/templates/tabs/card-footer.hbs"}}
   </div>
 </article>

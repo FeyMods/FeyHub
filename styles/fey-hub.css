@@ -274,6 +274,30 @@ details.fey-card .fey-card-body { border-top: 1px solid var(--fey-border); paddi
   white-space: pre-wrap;
   line-height: 1.45;
 }
+
+/* Enriched rich text: HTML from the editor, so the markup sets the line breaks. */
+.fey-text.fey-rich { white-space: normal; overflow-wrap: anywhere; }
+.fey-rich > :first-child { margin-top: 0; }
+.fey-rich > :last-child { margin-bottom: 0; }
+.fey-rich p { margin: 0 0 0.5em; }
+.fey-rich ul,
+.fey-rich ol { margin: 0 0 0.5em; padding-left: 1.4em; }
+.fey-rich h1,
+.fey-rich h2,
+.fey-rich h3,
+.fey-rich h4 { margin: 0.4em 0 0.3em; border: none; font-size: 1.1em; }
+.fey-rich img { max-width: 100%; height: auto; }
+.fey-rich blockquote {
+  margin: 0 0 0.5em;
+  padding-left: 8px;
+  border-left: 3px solid var(--fey-border);
+  color: var(--fey-muted);
+}
+.fey-rich section.secret {
+  padding: 2px 8px;
+  border-left: 3px solid var(--fey-accent);
+  background: var(--fey-surface-2);
+}
 .fey-line {
   margin: 0;
   color: var(--fey-muted);
@@ -413,6 +437,14 @@ details.fey-card .fey-card-body { border-top: 1px solid var(--fey-border); paddi
 .fey-form .form-group.stacked { flex-direction: column; align-items: stretch; }
 .fey-form .form-group.stacked > label { flex: none; }
 .fey-form textarea { min-height: 4em; resize: vertical; }
+.fey-form prose-mirror.fey-prose {
+  min-height: 140px;
+  max-height: 45vh;
+  border: 1px solid var(--fey-border);
+  border-radius: var(--fey-radius);
+  background: var(--fey-surface);
+}
+.fey-form prose-mirror.fey-prose .editor-content { padding: 4px 8px; }
 
 .fey-objectives {
   margin: 0;
@@ -662,6 +694,13 @@ details.fey-card .fey-card-body { border-top: 1px solid var(--fey-border); paddi
   -moz-appearance: textfield;
 }
 .fey-stash .fp-stepper .fp-num:focus { box-shadow: none; }
+/* A total the user can see but not change directly. */
+.fey-stash .fp-amount {
+  min-width: 4.5rem;
+  text-align: center;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
 .fey-stash .fp-num::-webkit-inner-spin-button,
 .fey-stash .fp-num::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 
@@ -777,3 +816,67 @@ details.fey-card .fey-card-body { border-top: 1px solid var(--fey-border); paddi
   width: 100%;
   font-size: var(--font-size-12, 0.75rem);
 }
+
+/* ---------- Unread markers ---------- */
+
+.fey-unread {
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--fey-accent);
+  color: var(--fey-accent-text);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+}
+.fey-badge.fey-unread-badge { --fey-badge: var(--fey-accent); font-size: 11px; }
+.fey-badge.fey-unread-badge.is-new { font-weight: 600; }
+
+/* ---------- Quest rewards ---------- */
+
+.fey-rewards {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 2px;
+}
+.fey-rewards-label { color: var(--fey-muted); }
+.fey-hub .fey-reward-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border: 1px solid var(--fey-border);
+  border-radius: 10px;
+  background: var(--fey-surface-2);
+  color: var(--fey-text);
+  font-size: 12px;
+}
+.fey-hub .fey-reward-chip img { width: 16px; height: 16px; border: none; border-radius: 3px; }
+.fey-rewards.is-paid .fey-reward-chip { opacity: 0.7; }
+.fey-reward-status { color: var(--fey-green); font-size: 12px; }
+
+.fey-rewards-edit .hint { margin: 0; color: var(--fey-muted); font-size: 12px; }
+.fey-reward-paid { margin: 0; color: var(--fey-green); font-size: 12px; }
+.fey-reward-coins { display: flex; flex-wrap: wrap; gap: 8px; }
+.fey-reward-coin { display: inline-flex; align-items: center; gap: 4px; }
+.fey-reward-coin input { width: 72px; }
+.fey-reward-items {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.fey-reward-row { display: flex; align-items: center; gap: 6px; }
+.fey-reward-row img { width: 24px; height: 24px; border: none; border-radius: 3px; }
+.fey-reward-row .fey-reward-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fey-reward-row input[type="number"] { width: 60px; }
+
+/* ---------- Chat announcements ---------- */
+
+.fey-announce { display: flex; align-items: baseline; gap: 8px; }
+.fey-announce > i { color: var(--color-text-secondary, inherit); }
